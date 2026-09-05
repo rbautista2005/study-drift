@@ -20,7 +20,7 @@ const fileTypes: Record<string, string> = {
 };
 
 type OpenAIResponse = {
-  error?: { message?: string };
+  error?: { code?: string; message?: string; type?: string };
   output?: Array<{
     type?: string;
     content?: Array<{ type?: string; text?: string; refusal?: string }>;
@@ -174,12 +174,30 @@ export async function POST(request: Request) {
 
     const responseBody = (await openAIResponse.json()) as OpenAIResponse;
     if (!openAIResponse.ok) {
+      const errorCode = responseBody.error?.code;
+      const errorSummary = [
+        responseBody.error?.code,
+        responseBody.error?.type,
+        responseBody.error?.message,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLocaleLowerCase();
       const message =
         openAIResponse.status === 401
           ? 'The server API key is not valid.'
-          : openAIResponse.status === 429
-            ? 'The AI pit crew is busy. Wait a moment and try again.'
-            : 'The AI model could not process that file.';
+          : openAIResponse.status === 429 &&
+              (errorCode === 'insufficient_quota' ||
+                errorSummary.includes('quota') ||
+                errorSummary.includes('billing'))
+            ? 'This OpenAI project has no available API credits. Add billing or use a funded project key.'
+            : openAIResponse.status === 429
+              ? 'The AI pit crew is busy. Wait a moment and try again.'
+              : openAIResponse.status === 403
+                ? 'This OpenAI project cannot use the configured model.'
+                : openAIResponse.status === 404
+                  ? 'The configured OpenAI model is not available to this project.'
+                  : 'The AI model could not process that file.';
       throw new GenerateRouteError(message, openAIResponse.status);
     }
 
