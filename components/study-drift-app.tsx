@@ -7,6 +7,7 @@ import {
   Check,
   ChevronRight,
   CircleGauge,
+  Coins,
   Flame,
   RotateCcw,
   Sparkles,
@@ -31,6 +32,14 @@ import type {
   MultiplayerRoom as MultiplayerRoomState,
   MultiplayerSession,
 } from '@/lib/multiplayer-types';
+import {
+  emptyPlayerProgress,
+  finishSoloRace,
+  loadPlayerProgress,
+  savePlayerProgress,
+  type PlayerProgress,
+  type RaceReward,
+} from '@/lib/player-progress';
 import {
   buildLap,
   biologyDemo,
@@ -70,7 +79,11 @@ export function StudyDriftApp() {
   const [streak, setStreak] = useState(0);
   const [speed, setSpeed] = useState(0);
   const [boost, setBoost] = useState(false);
+  const [playerProgress, setPlayerProgress] =
+    useState<PlayerProgress>(emptyPlayerProgress);
+  const [lastReward, setLastReward] = useState<RaceReward | null>(null);
   const nextButtonRef = useRef<HTMLButtonElement>(null);
+  const raceCompletionRef = useRef(false);
 
   const currentQuestion = questions[questionIndex];
   const target = masteryTarget(questions.length);
@@ -92,6 +105,8 @@ export function StudyDriftApp() {
       setStreak(0);
       setSpeed(0);
       setBoost(false);
+      setLastReward(null);
+      raceCompletionRef.current = false;
       setLap(nextLap);
       setScreen('race');
     },
@@ -108,6 +123,8 @@ export function StudyDriftApp() {
     setStreak(0);
     setSpeed(0);
     setBoost(false);
+    setLastReward(null);
+    raceCompletionRef.current = false;
     setLap(0);
   }, []);
 
@@ -157,13 +174,36 @@ export function StudyDriftApp() {
     setBoost(false);
 
     if (questionIndex >= questions.length - 1) {
+      if (raceCompletionRef.current) return;
+      raceCompletionRef.current = true;
+      const raceResult = finishSoloRace(playerProgress, {
+        correctCount,
+        longestStreak: records.reduce(
+          (longest, record) => Math.max(longest, record.streakAfter),
+          0,
+        ),
+        passed: correctCount >= target,
+        score,
+      });
+      setPlayerProgress(raceResult.progress);
+      setLastReward(raceResult.reward);
+      savePlayerProgress(raceResult.progress);
       setScreen('report');
       return;
     }
 
     setQuestionIndex((current) => current + 1);
     setSelectedIndex(null);
-  }, [questionIndex, questions.length, selectedIndex]);
+  }, [
+    correctCount,
+    playerProgress,
+    questionIndex,
+    questions.length,
+    records,
+    score,
+    selectedIndex,
+    target,
+  ]);
 
   useEffect(() => {
     if (isAnswered) nextButtonRef.current?.focus();
@@ -183,6 +223,11 @@ export function StudyDriftApp() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [advance, screen, selectedIndex, submitAnswer]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setPlayerProgress(loadPlayerProgress()), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const session = restoreMultiplayerSession();
@@ -218,6 +263,7 @@ export function StudyDriftApp() {
   return (
     <main className="app-shell">
       <AppHeader
+        playerProgress={playerProgress}
         screen={screen}
         onHome={
           screen === 'multiplayer' ? exitMultiplayer : () => setScreen('garage')
@@ -256,6 +302,8 @@ export function StudyDriftApp() {
       {screen === 'report' && (
         <PitReport
           lap={lap}
+          lastReward={lastReward}
+          playerProgress={playerProgress}
           records={records}
           score={score}
           target={target}
@@ -274,7 +322,15 @@ export function StudyDriftApp() {
   );
 }
 
-function AppHeader({ screen, onHome }: { screen: Screen; onHome: () => void }) {
+function AppHeader({
+  playerProgress,
+  screen,
+  onHome,
+}: {
+  playerProgress: PlayerProgress;
+  screen: Screen;
+  onHome: () => void;
+}) {
   return (
     <header className="app-header">
       <button
@@ -303,8 +359,15 @@ function AppHeader({ screen, onHome }: { screen: Screen; onHome: () => void }) {
           Pit report
         </span>
       </div>
-      <div className="header-chip">
-        <Flame size={15} aria-hidden="true" /> Demo streak <strong>3</strong>
+      <div
+        className="header-chip"
+        aria-label={`${playerProgress.longestStreak} best streak, ${playerProgress.tokens} tokens`}
+      >
+        <Flame size={15} aria-hidden="true" /> Best streak{' '}
+        <strong>{playerProgress.longestStreak}</strong>
+        <span className="header-chip__divider" />
+        <Coins size={15} aria-hidden="true" />
+        <strong>{playerProgress.tokens}</strong>
       </div>
     </header>
   );
@@ -628,6 +691,8 @@ function RaceScreen(props: RaceScreenProps) {
 
 function PitReport({
   lap,
+  lastReward,
+  playerProgress,
   records,
   score,
   target,
@@ -635,6 +700,8 @@ function PitReport({
   onGarage,
 }: {
   lap: number;
+  lastReward: RaceReward | null;
+  playerProgress: PlayerProgress;
   records: AnswerRecord[];
   score: number;
   target: number;
@@ -684,6 +751,20 @@ function PitReport({
             <strong>{score.toLocaleString()}</strong>
           </div>
         </div>
+        {lastReward ? (
+          <div className="token-reward" aria-live="polite">
+            <Coins size={20} aria-hidden="true" />
+            <div>
+              <strong>+{lastReward.tokensEarned} drift tokens</strong>
+              <span>
+                {lastReward.masteryBonus > 0
+                  ? `${lastReward.masteryBonus} token mastery bonus · `
+                  : ''}
+                {playerProgress.tokens} banked
+              </span>
+            </div>
+          </div>
+        ) : null}
         <div className="report-actions">
           <Button className="start-button" size="lg" onClick={onRetry}>
             {passed ? 'Practice weakest sector' : 'Run recovery lap'}{' '}
