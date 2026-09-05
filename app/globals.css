@@ -405,6 +405,214 @@ a:focus-visible {
   flex: 0 0 auto;
 }
 
+.study-set-card__buttons {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+}
+
+.import-trigger {
+  background: transparent !important;
+  border: 1px solid #aebbbc !important;
+  border-radius: 0 !important;
+  color: var(--ink) !important;
+  min-height: 48px;
+  padding-inline: 16px !important;
+}
+
+.import-trigger:hover {
+  background: #e9ece7 !important;
+}
+
+.import-dialog {
+  background: var(--white) !important;
+  border: 1px solid var(--ink);
+  border-radius: 0 !important;
+  box-shadow: 12px 12px 0 rgba(11, 36, 54, 0.28);
+  display: block !important;
+  max-height: calc(100svh - 32px);
+  max-width: 720px !important;
+  overflow-y: auto;
+  padding: 0 !important;
+}
+
+.import-dialog__header {
+  border-bottom: 1px solid var(--line);
+  gap: 0 !important;
+  padding: 26px 30px 24px;
+}
+
+.import-dialog__header [data-slot='dialog-title'] {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 760;
+  letter-spacing: -0.055em;
+  line-height: 1;
+  margin: 10px 0 12px;
+}
+
+.import-dialog__header [data-slot='dialog-description'] {
+  color: var(--steel);
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 590px;
+}
+
+.import-form {
+  display: grid;
+  gap: 18px;
+  padding: 24px 30px 28px;
+}
+
+.import-fields {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1.5fr) minmax(150px, 0.7fr);
+}
+
+.import-form label {
+  display: grid;
+  gap: 7px;
+}
+
+.import-form label > span,
+.notes-field > span {
+  color: var(--steel);
+  font-size: 12px;
+  font-weight: 680;
+}
+
+.import-form input,
+.import-form textarea {
+  background: #fbfaf5;
+  border: 1px solid #aebbbc;
+  border-radius: 0;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  outline: 0;
+  padding: 11px 12px;
+  width: 100%;
+}
+
+.import-form textarea {
+  line-height: 1.5;
+  min-height: 164px;
+  resize: vertical;
+}
+
+.import-form input:focus,
+.import-form textarea:focus,
+.file-drop:focus-within {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--orange) 20%, transparent);
+}
+
+.file-drop {
+  align-items: center;
+  background: #e9ece7;
+  border: 1px dashed #95a4a6;
+  cursor: pointer;
+  display: grid !important;
+  gap: 12px !important;
+  grid-template-columns: auto 1fr auto;
+  padding: 14px 16px;
+  position: relative;
+}
+
+.file-drop > input {
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.file-drop > svg {
+  color: var(--orange);
+}
+
+.file-drop > span:not(.file-drop__action) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file-drop strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.file-drop small {
+  color: var(--muted-text);
+  font-size: 12px;
+}
+
+.file-drop__action {
+  border-left: 1px solid #bcc5c3;
+  color: var(--ink) !important;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px !important;
+  padding-left: 14px;
+  text-transform: uppercase;
+}
+
+.notes-field > span {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.notes-field > span small {
+  color: var(--muted-text);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.format-hint {
+  align-items: center;
+  background: #fff6dc;
+  border-left: 3px solid var(--yellow);
+  display: flex;
+  gap: 11px;
+  padding: 11px 13px;
+}
+
+.format-hint > svg {
+  color: #a97100;
+  flex: 0 0 auto;
+}
+
+.format-hint p {
+  color: #5a4a22;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.format-hint code {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  font-weight: 680;
+}
+
+.import-error {
+  font-size: 12px !important;
+}
+
+.import-actions {
+  align-items: center;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 2px;
+  padding-top: 20px;
+}
+
 .start-button {
   background: var(--orange) !important;
   border: 1px solid #d83b1d !important;
@@ -439,7 +647,7 @@ a:focus-visible {
 
 .track-preview::before {
   color: #89969a;
-  content: 'COURSE  /  CR-05';
+  content: attr(data-course);
   font-family: var(--font-geist-mono), monospace;
   font-size: 10px;
   left: -9px;
@@ -1918,6 +2126,35 @@ a:focus-visible {
     align-items: stretch;
     flex-direction: column;
     padding: 18px;
+  }
+  .study-set-card__buttons {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+  .import-trigger {
+    width: 100%;
+  }
+  .import-dialog {
+    max-height: calc(100svh - 16px);
+    max-width: calc(100% - 16px) !important;
+  }
+  .import-dialog__header,
+  .import-form {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .import-fields {
+    grid-template-columns: 1fr;
+  }
+  .file-drop {
+    grid-template-columns: auto 1fr;
+  }
+  .file-drop__action {
+    display: none;
+  }
+  .import-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
   }
   .start-button {
     width: 100%;

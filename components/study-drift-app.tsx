@@ -18,6 +18,7 @@ import {
 import { MultiplayerGarage } from '@/components/multiplayer-garage';
 import { MultiplayerRoom } from '@/components/multiplayer-room';
 import { RaceTrack } from '@/components/race-track';
+import { StudyGuideImporter } from '@/components/study-guide-importer';
 import { Button } from '@/components/ui/button';
 import { useStudyDriftTools } from '@/hooks/use-study-drift-tools';
 import {
@@ -30,7 +31,12 @@ import type {
   MultiplayerRoom as MultiplayerRoomState,
   MultiplayerSession,
 } from '@/lib/multiplayer-types';
-import { buildLap, biologyDemo, type StudyQuestion } from '@/lib/study-data';
+import {
+  buildLap,
+  biologyDemo,
+  type StudyQuestion,
+  type StudySet,
+} from '@/lib/study-data';
 import {
   difficultyLabel,
   masteryTarget,
@@ -53,6 +59,7 @@ export function StudyDriftApp() {
     room: MultiplayerRoomState;
   } | null>(null);
   const [lap, setLap] = useState(0);
+  const [studySet, setStudySet] = useState<StudySet>(biologyDemo);
   const [questions, setQuestions] = useState<StudyQuestion[]>(() =>
     buildLap(biologyDemo, 0),
   );
@@ -75,8 +82,25 @@ export function StudyDriftApp() {
       : Math.min(96, (answeredCount / questions.length) * 100);
   const isAnswered = selectedIndex !== null;
 
-  const resetRace = useCallback((nextLap: number) => {
-    setQuestions(buildLap(biologyDemo, nextLap));
+  const resetRace = useCallback(
+    (nextLap: number) => {
+      setQuestions(buildLap(studySet, nextLap));
+      setQuestionIndex(0);
+      setSelectedIndex(null);
+      setRecords([]);
+      setScore(0);
+      setStreak(0);
+      setSpeed(0);
+      setBoost(false);
+      setLap(nextLap);
+      setScreen('race');
+    },
+    [studySet],
+  );
+
+  const importSet = useCallback((nextStudySet: StudySet) => {
+    setStudySet(nextStudySet);
+    setQuestions(buildLap(nextStudySet, 0));
     setQuestionIndex(0);
     setSelectedIndex(null);
     setRecords([]);
@@ -84,8 +108,7 @@ export function StudyDriftApp() {
     setStreak(0);
     setSpeed(0);
     setBoost(false);
-    setLap(nextLap);
-    setScreen('race');
+    setLap(0);
   }, []);
 
   const exitMultiplayer = useCallback(() => {
@@ -205,6 +228,8 @@ export function StudyDriftApp() {
           mode={garageMode}
           onMode={setGarageMode}
           onStart={() => resetRace(0)}
+          onImport={importSet}
+          studySet={studySet}
           onMultiplayerConnected={(session, room) => {
             setMultiplayer({ session, room });
             setScreen('multiplayer');
@@ -289,16 +314,28 @@ function Garage({
   mode,
   onMode,
   onStart,
+  onImport,
   onMultiplayerConnected,
+  studySet,
 }: {
   mode: GarageMode;
   onMode: (mode: GarageMode) => void;
   onStart: () => void;
+  onImport: (studySet: StudySet) => void;
   onMultiplayerConnected: (
     session: MultiplayerSession,
     room: MultiplayerRoomState,
   ) => void;
+  studySet: StudySet;
 }) {
+  const conceptCount = new Set(
+    studySet.questions.map((question) => question.conceptId),
+  ).size;
+  const imported = studySet.id !== biologyDemo.id;
+  const trackTopics = Array.from(
+    new Set(studySet.questions.map((question) => question.topic)),
+  ).slice(0, 3);
+
   return (
     <div className="garage-layout">
       <section className="garage-main">
@@ -355,18 +392,19 @@ function Garage({
               </div>
               <div>
                 <span className="telemetry-label">Selected study set</span>
-                <h2>{biologyDemo.title}</h2>
+                <h2>{studySet.title}</h2>
                 <p>
-                  {biologyDemo.course} · {biologyDemo.description}
+                  {studySet.course} · {studySet.description}
                 </p>
               </div>
               <span className="ready-badge">
-                <Check size={14} aria-hidden="true" /> Demo ready
+                <Check size={14} aria-hidden="true" />
+                {imported ? 'Imported' : 'Demo ready'}
               </span>
             </div>
             <div className="study-set-card__stats">
               <div>
-                <strong>5</strong>
+                <strong>{conceptCount}</strong>
                 <span>concepts</span>
               </div>
               <div>
@@ -383,9 +421,12 @@ function Garage({
                 <Sparkles size={16} aria-hidden="true" /> A recovery lap swaps
                 in matched questions—not repeats.
               </p>
-              <Button className="start-button" size="lg" onClick={onStart}>
-                Start race <ArrowRight size={17} aria-hidden="true" />
-              </Button>
+              <div className="study-set-card__buttons">
+                <StudyGuideImporter onImport={onImport} />
+                <Button className="start-button" size="lg" onClick={onStart}>
+                  Start race <ArrowRight size={17} aria-hidden="true" />
+                </Button>
+              </div>
             </div>
           </article>
         ) : (
@@ -394,7 +435,11 @@ function Garage({
       </section>
 
       <aside className="garage-aside">
-        <div className="track-preview" aria-hidden="true">
+        <div
+          className="track-preview"
+          data-course={`COURSE / ${studySet.course}`}
+          aria-hidden="true"
+        >
           <div className="track-preview__route">
             <span className="track-preview__dot track-preview__dot--start" />
             <span className="track-preview__dot track-preview__dot--one" />
@@ -403,14 +448,16 @@ function Garage({
           </div>
           <div className="track-preview__legend">
             <span>Start</span>
-            <span>Glycolysis</span>
-            <span>Cycle</span>
-            <span>ETC</span>
+            {trackTopics.map((topic) => (
+              <span key={topic}>{topic}</span>
+            ))}
           </div>
         </div>
         <div className="briefing-card">
-          <span className="telemetry-label">Race briefing · 02:30</span>
-          <h2>Five concepts. One clean lap.</h2>
+          <span className="telemetry-label">
+            Race briefing · {conceptCount} turns
+          </span>
+          <h2>{conceptCount} concepts. One clean lap.</h2>
           <p>
             Harder questions trigger a stronger boost, but accuracy gets you
             across the line.
