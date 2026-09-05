@@ -471,6 +471,52 @@ a:focus-visible {
   padding: 24px 30px 28px;
 }
 
+.import-mode {
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 22px;
+}
+
+.import-mode button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--muted-text);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 7px;
+  margin-bottom: -1px;
+  padding: 2px 1px 12px;
+  position: relative;
+}
+
+.import-mode button::after {
+  background: transparent;
+  bottom: 0;
+  content: '';
+  height: 3px;
+  left: 0;
+  position: absolute;
+  right: 0;
+}
+
+.import-mode button:hover,
+.import-mode button.is-selected {
+  color: var(--ink);
+}
+
+.import-mode button.is-selected::after {
+  background: var(--orange);
+}
+
+.import-mode button:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+}
+
 .import-fields {
   display: grid;
   gap: 14px;
@@ -521,13 +567,59 @@ a:focus-visible {
   border: 1px dashed #95a4a6;
   cursor: pointer;
   display: grid !important;
+  font: inherit;
   gap: 12px !important;
   grid-template-columns: auto 1fr auto;
   padding: 14px 16px;
   position: relative;
+  text-align: left;
+  width: 100%;
 }
 
-.file-drop > input {
+.file-drop:disabled {
+  cursor: wait;
+}
+
+.file-drop--ai {
+  min-height: 142px;
+  padding: 24px 20px;
+}
+
+.file-drop--ai::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--orange) 55%, transparent),
+    transparent
+  );
+  content: '';
+  height: 1px;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: translateY(-1px);
+}
+
+.file-drop--ai.is-dragging {
+  background: #fff6dc;
+  border-color: var(--orange);
+  border-style: solid;
+}
+
+.file-drop--ai.is-dragging::after {
+  animation: scanner-pass 900ms linear infinite;
+  opacity: 1;
+}
+
+.file-drop--ai.has-file {
+  background: #eef5ef;
+  border-color: #709178;
+  border-style: solid;
+}
+
+.file-input {
   height: 1px;
   opacity: 0;
   overflow: hidden;
@@ -538,6 +630,23 @@ a:focus-visible {
 
 .file-drop > svg {
   color: var(--orange);
+}
+
+.file-drop__icon {
+  align-items: center;
+  background: var(--white);
+  border: 1px solid #aebbbc;
+  color: var(--orange) !important;
+  display: flex !important;
+  height: 46px;
+  justify-content: center;
+  width: 46px;
+}
+
+.file-drop.has-file .file-drop__icon {
+  background: #dcebdd;
+  border-color: #709178;
+  color: #226033 !important;
 }
 
 .file-drop > span:not(.file-drop__action) {
@@ -604,6 +713,84 @@ a:focus-visible {
   font-family: var(--font-geist-mono), monospace;
   font-size: 11px;
   font-weight: 680;
+}
+
+.format-hint--ai {
+  background: #edf4f6;
+  border-left-color: #5e8793;
+}
+
+.format-hint--ai > svg {
+  color: #356876;
+}
+
+.format-hint--ai p {
+  color: #36545c;
+}
+
+.ai-scan-status {
+  align-items: center;
+  background: var(--ink);
+  color: white;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto 1fr;
+  overflow: hidden;
+  padding: 14px 16px 18px;
+  position: relative;
+}
+
+.ai-scan-status__light {
+  align-items: center;
+  background: var(--orange);
+  display: flex;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.ai-scan-status > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ai-scan-status strong {
+  font-size: 13px;
+}
+
+.ai-scan-status small {
+  color: #c7d2d4;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.ai-scan-status__meter {
+  animation: scan-progress 1.8s ease-in-out infinite;
+  background: var(--orange);
+  bottom: 0;
+  height: 4px;
+  left: 0;
+  position: absolute;
+  width: 38%;
+}
+
+@keyframes scanner-pass {
+  from {
+    top: 0;
+  }
+  to {
+    top: 100%;
+  }
+}
+
+@keyframes scan-progress {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(370%);
+  }
 }
 
 .import-error {
