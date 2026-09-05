@@ -1,0 +1,399 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "61420888-1700-4b8f-b993-45f77f219009",
+  "prevId": "0054cd69-c705-4561-ba0d-2070ed3efd94",
+  "tables": {
+    "race_answers": {
+      "name": "race_answers",
+      "columns": {
+        "request_id": {
+          "name": "request_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "room_id": {
+          "name": "room_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "player_id": {
+          "name": "player_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "question_id": {
+          "name": "question_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "selected_index": {
+          "name": "selected_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "correct": {
+          "name": "correct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_awarded": {
+          "name": "points_awarded",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "received_at_ms": {
+          "name": "received_at_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "race_answers_player_question_unique": {
+          "name": "race_answers_player_question_unique",
+          "columns": [
+            "room_id",
+            "player_id",
+            "question_id"
+          ],
+          "isUnique": true
+        },
+        "race_answers_room_idx": {
+          "name": "race_answers_room_idx",
+          "columns": [
+            "room_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "race_answers_room_id_race_rooms_id_fk": {
+          "name": "race_answers_room_id_race_rooms_id_fk",
+          "tableFrom": "race_answers",
+          "tableTo": "race_rooms",
+          "columnsFrom": [
+            "room_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "race_answers_player_id_race_players_id_fk": {
+          "name": "race_answers_player_id_race_players_id_fk",
+          "tableFrom": "race_answers",
+          "tableTo": "race_players",
+          "columnsFrom": [
+            "player_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "race_players": {
+      "name": "race_players",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "room_id": {
+          "name": "room_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "token_hash": {
+          "name": "token_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "is_host": {
+          "name": "is_host",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "ready": {
+          "name": "ready",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "score": {
+          "name": "score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "correct_count": {
+          "name": "correct_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "answered_count": {
+          "name": "answered_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "streak": {
+          "name": "streak",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "joined_at_ms": {
+          "name": "joined_at_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "finished_at_ms": {
+          "name": "finished_at_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "race_players_token_unique": {
+          "name": "race_players_token_unique",
+          "columns": [
+            "token_hash"
+          ],
+          "isUnique": true
+        },
+        "race_players_room_name_ci_unique": {
+          "name": "race_players_room_name_ci_unique",
+          "columns": [
+            "room_id",
+            "lower(\"display_name\")"
+          ],
+          "isUnique": true
+        },
+        "race_players_room_idx": {
+          "name": "race_players_room_idx",
+          "columns": [
+            "room_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "race_players_room_id_race_rooms_id_fk": {
+          "name": "race_players_room_id_race_rooms_id_fk",
+          "tableFrom": "race_players",
+          "tableTo": "race_rooms",
+          "columnsFrom": [
+            "room_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "race_rooms": {
+      "name": "race_rooms",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'lobby'"
+        },
+        "study_set_id": {
+          "name": "study_set_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "deck_version": {
+          "name": "deck_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "question_ids_json": {
+          "name": "question_ids_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "mastery_target": {
+          "name": "mastery_target",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "max_players": {
+          "name": "max_players",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 4
+        },
+        "host_player_id": {
+          "name": "host_player_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "winner_player_id": {
+          "name": "winner_player_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "created_at_ms": {
+          "name": "created_at_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "starts_at_ms": {
+          "name": "starts_at_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "expires_at_ms": {
+          "name": "expires_at_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "race_rooms_code_unique": {
+          "name": "race_rooms_code_unique",
+          "columns": [
+            "code"
+          ],
+          "isUnique": true
+        },
+        "race_rooms_expiry_idx": {
+          "name": "race_rooms_expiry_idx",
+          "columns": [
+            "expires_at_ms"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {
+      "race_players_room_name_ci_unique": {
+        "columns": {
+          "lower(\"display_name\")": {
+            "isExpression": true
+          }
+        }
+      }
+    }
+  }
+}

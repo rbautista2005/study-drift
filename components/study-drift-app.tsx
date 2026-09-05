@@ -15,8 +15,21 @@ import {
   X,
   Zap,
 } from 'lucide-react';
+import { MultiplayerGarage } from '@/components/multiplayer-garage';
+import { MultiplayerRoom } from '@/components/multiplayer-room';
 import { RaceTrack } from '@/components/race-track';
 import { Button } from '@/components/ui/button';
+import { useStudyDriftTools } from '@/hooks/use-study-drift-tools';
+import {
+  clearMultiplayerSession,
+  leaveMultiplayerRoom,
+  readMultiplayerRoom,
+  restoreMultiplayerSession,
+} from '@/lib/multiplayer-client';
+import type {
+  MultiplayerRoom as MultiplayerRoomState,
+  MultiplayerSession,
+} from '@/lib/multiplayer-types';
 import { buildLap, biologyDemo, type StudyQuestion } from '@/lib/study-data';
 import {
   difficultyLabel,
@@ -27,12 +40,18 @@ import {
   type AnswerRecord,
 } from '@/lib/race-engine';
 
-type Screen = 'garage' | 'race' | 'report';
+type Screen = 'garage' | 'race' | 'report' | 'multiplayer';
+type GarageMode = 'solo' | 'multiplayer';
 
 const choiceKeys = ['1', '2', '3', '4'];
 
 export function StudyDriftApp() {
   const [screen, setScreen] = useState<Screen>('garage');
+  const [garageMode, setGarageMode] = useState<GarageMode>('solo');
+  const [multiplayer, setMultiplayer] = useState<{
+    session: MultiplayerSession;
+    room: MultiplayerRoomState;
+  } | null>(null);
   const [lap, setLap] = useState(0);
   const [questions, setQuestions] = useState<StudyQuestion[]>(() =>
     buildLap(biologyDemo, 0),
@@ -68,6 +87,16 @@ export function StudyDriftApp() {
     setLap(nextLap);
     setScreen('race');
   }, []);
+
+  const exitMultiplayer = useCallback(() => {
+    if (multiplayer) {
+      void leaveMultiplayerRoom(multiplayer.session).catch(() => undefined);
+    }
+    clearMultiplayerSession();
+    setMultiplayer(null);
+    setGarageMode('multiplayer');
+    setScreen('garage');
+  }, [multiplayer]);
 
   const submitAnswer = useCallback(
     (answerIndex: number) => {
@@ -132,10 +161,56 @@ export function StudyDriftApp() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [advance, screen, selectedIndex, submitAnswer]);
 
+  useEffect(() => {
+    const session = restoreMultiplayerSession();
+    if (!session) return;
+
+    let cancelled = false;
+    void readMultiplayerRoom(session)
+      .then((response) => {
+        if (cancelled) return;
+        setMultiplayer({ session, room: response.room });
+        setScreen('multiplayer');
+      })
+      .catch(() => clearMultiplayerSession());
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useStudyDriftTools({
+    screen,
+    currentQuestion,
+    questionIndex,
+    questionCount: questions.length,
+    selectedIndex,
+    correctCount,
+    score,
+    onStartSolo: () => resetRace(0),
+    onAnswer: submitAnswer,
+    onAdvance: advance,
+  });
+
   return (
     <main className="app-shell">
-      <AppHeader screen={screen} onHome={() => setScreen('garage')} />
-      {screen === 'garage' && <Garage onStart={() => resetRace(0)} />}
+      <AppHeader
+        screen={screen}
+        onHome={
+          screen === 'multiplayer' ? exitMultiplayer : () => setScreen('garage')
+        }
+      />
+      {screen === 'garage' && (
+        <Garage
+          mode={garageMode}
+          onMode={setGarageMode}
+          onStart={() => resetRace(0)}
+          onMultiplayerConnected={(session, room) => {
+            setMultiplayer({ session, room });
+            setScreen('multiplayer');
+          }}
+        />
+      )}
       {screen === 'race' && currentQuestion && (
         <RaceScreen
           answeredCount={answeredCount}
@@ -163,6 +238,13 @@ export function StudyDriftApp() {
           onGarage={() => setScreen('garage')}
         />
       )}
+      {screen === 'multiplayer' && multiplayer && (
+        <MultiplayerRoom
+          initialRoom={multiplayer.room}
+          session={multiplayer.session}
+          onExit={exitMultiplayer}
+        />
+      )}
     </main>
   );
 }
@@ -184,7 +266,13 @@ function AppHeader({ screen, onHome }: { screen: Screen; onHome: () => void }) {
       <div className="header-status" aria-label="Current location">
         <span className={screen === 'garage' ? 'is-active' : ''}>Garage</span>
         <ChevronRight size={14} aria-hidden="true" />
-        <span className={screen === 'race' ? 'is-active' : ''}>Race</span>
+        <span
+          className={
+            screen === 'race' || screen === 'multiplayer' ? 'is-active' : ''
+          }
+        >
+          Race
+        </span>
         <ChevronRight size={14} aria-hidden="true" />
         <span className={screen === 'report' ? 'is-active' : ''}>
           Pit report
@@ -197,7 +285,20 @@ function AppHeader({ screen, onHome }: { screen: Screen; onHome: () => void }) {
   );
 }
 
-function Garage({ onStart }: { onStart: () => void }) {
+function Garage({
+  mode,
+  onMode,
+  onStart,
+  onMultiplayerConnected,
+}: {
+  mode: GarageMode;
+  onMode: (mode: GarageMode) => void;
+  onStart: () => void;
+  onMultiplayerConnected: (
+    session: MultiplayerSession,
+    room: MultiplayerRoomState,
+  ) => void;
+}) {
   return (
     <div className="garage-layout">
       <section className="garage-main">
@@ -205,70 +306,91 @@ function Garage({ onStart }: { onStart: () => void }) {
           <span /> Your next study session
         </div>
         <h1>
-          Learn the course.
-          <br />
-          Race the clock.
+          {mode === 'solo' ? (
+            <>
+              Learn the course.
+              <br />
+              Race the clock.
+            </>
+          ) : (
+            <>
+              Same questions.
+              <br />
+              Real competition.
+            </>
+          )}
         </h1>
         <p className="lede">
-          Every correct answer creates momentum. Every lap shows exactly what to
-          review next.
+          {mode === 'solo'
+            ? 'Every correct answer creates momentum. Every lap shows exactly what to review next.'
+            : 'Create a room, share the code, and race friends through one fair, frozen study set.'}
         </p>
 
         <div className="mode-switch" role="tablist" aria-label="Race mode">
           <button
-            className="is-selected"
+            className={mode === 'solo' ? 'is-selected' : ''}
             role="tab"
-            aria-selected="true"
+            aria-selected={mode === 'solo'}
+            onClick={() => onMode('solo')}
             type="button"
           >
             <CircleGauge size={18} aria-hidden="true" /> Solo race
           </button>
-          <button role="tab" aria-selected="false" type="button" disabled>
-            <Users size={18} aria-hidden="true" /> Multiplayer{' '}
-            <span>Next build</span>
+          <button
+            className={mode === 'multiplayer' ? 'is-selected' : ''}
+            role="tab"
+            aria-selected={mode === 'multiplayer'}
+            onClick={() => onMode('multiplayer')}
+            type="button"
+          >
+            <Users size={18} aria-hidden="true" /> Multiplayer <span>Live</span>
           </button>
         </div>
 
-        <article className="study-set-card">
-          <div className="study-set-card__top">
-            <div className="set-icon">
-              <BookOpen size={22} aria-hidden="true" />
+        {mode === 'solo' ? (
+          <article className="study-set-card">
+            <div className="study-set-card__top">
+              <div className="set-icon">
+                <BookOpen size={22} aria-hidden="true" />
+              </div>
+              <div>
+                <span className="telemetry-label">Selected study set</span>
+                <h2>{biologyDemo.title}</h2>
+                <p>
+                  {biologyDemo.course} · {biologyDemo.description}
+                </p>
+              </div>
+              <span className="ready-badge">
+                <Check size={14} aria-hidden="true" /> Demo ready
+              </span>
             </div>
-            <div>
-              <span className="telemetry-label">Selected study set</span>
-              <h2>{biologyDemo.title}</h2>
+            <div className="study-set-card__stats">
+              <div>
+                <strong>5</strong>
+                <span>concepts</span>
+              </div>
+              <div>
+                <strong>80%</strong>
+                <span>finish line</span>
+              </div>
+              <div>
+                <strong>2×</strong>
+                <span>question variants</span>
+              </div>
+            </div>
+            <div className="study-set-card__action">
               <p>
-                {biologyDemo.course} · {biologyDemo.description}
+                <Sparkles size={16} aria-hidden="true" /> A recovery lap swaps
+                in matched questions—not repeats.
               </p>
+              <Button className="start-button" size="lg" onClick={onStart}>
+                Start race <ArrowRight size={17} aria-hidden="true" />
+              </Button>
             </div>
-            <span className="ready-badge">
-              <Check size={14} aria-hidden="true" /> Demo ready
-            </span>
-          </div>
-          <div className="study-set-card__stats">
-            <div>
-              <strong>5</strong>
-              <span>concepts</span>
-            </div>
-            <div>
-              <strong>80%</strong>
-              <span>finish line</span>
-            </div>
-            <div>
-              <strong>2×</strong>
-              <span>question variants</span>
-            </div>
-          </div>
-          <div className="study-set-card__action">
-            <p>
-              <Sparkles size={16} aria-hidden="true" /> A recovery lap swaps in
-              matched questions—not repeats.
-            </p>
-            <Button className="start-button" size="lg" onClick={onStart}>
-              Start race <ArrowRight size={17} aria-hidden="true" />
-            </Button>
-          </div>
-        </article>
+          </article>
+        ) : (
+          <MultiplayerGarage onConnected={onMultiplayerConnected} />
+        )}
       </section>
 
       <aside className="garage-aside">
@@ -382,7 +504,8 @@ function RaceScreen(props: RaceScreenProps) {
           <span>{currentQuestion.topic}</span>
         </div>
         <h1 id="question-heading">{currentQuestion.prompt}</h1>
-        <div className="answer-grid" role="group" aria-label="Answer choices">
+        <fieldset className="answer-grid">
+          <legend className="sr-only">Answer choices</legend>
           {currentQuestion.choices.map((choice, index) => {
             const isAnswer = index === currentQuestion.answerIndex;
             const wasSelected = index === selectedIndex;
@@ -418,12 +541,12 @@ function RaceScreen(props: RaceScreenProps) {
               </button>
             );
           })}
-        </div>
+        </fieldset>
 
         {answered && (
           <div
             className={`feedback${isCorrect ? ' feedback--correct' : ' feedback--wrong'}`}
-            role="status"
+            aria-live="polite"
           >
             <div>
               <span className="feedback__title">
