@@ -171,7 +171,7 @@ function Lobby({
         <h1>Waiting on the grid.</h1>
         <p>
           Share the room code, have every racer ready up, then launch the same
-          five-question track together.
+          five-question rotation together.
         </p>
 
         <button
@@ -199,8 +199,8 @@ function Lobby({
           <ShieldCheck size={19} aria-hidden="true" />
           <p>
             <strong>Locked race blueprint.</strong> {room.questionIds.length}{' '}
-            questions from {room.studySetTitle} · {room.masteryTarget} correct
-            to win · {room.deckVersion}
+            questions from {room.studySetTitle} · first to {room.masteryTarget}{' '}
+            correct wins · every racer finishes · {room.deckVersion}
           </p>
         </div>
       </section>
@@ -335,8 +335,15 @@ function LiveMultiplayerRace({
   const countdown = room.startsAtMs
     ? Math.max(0, Math.ceil((room.startsAtMs - clock) / 1000))
     : 0;
-  const question = room.questions[cursor];
-  const waitingForOthers = !question && room.status === 'racing';
+  const question =
+    room.me.finished && !outcome
+      ? undefined
+      : room.questions[cursor % room.questions.length];
+  const waitingForOthers = room.me.finished && room.status === 'racing';
+  const racersRemaining = room.players.filter(
+    (player) => !player.finished,
+  ).length;
+  const tookFirst = room.winnerPlayerId === room.me.id;
 
   const submit = useCallback(
     async (index: number) => {
@@ -411,11 +418,8 @@ function LiveMultiplayerRace({
           <strong>{room.code}</strong>
         </div>
         <div>
-          <span className="telemetry-label">Question</span>
-          <strong>
-            {Math.min(cursor + 1, room.questionIds.length)} /{' '}
-            {room.questionIds.length}
-          </strong>
+          <span className="telemetry-label">Turn</span>
+          <strong>{cursor + 1}</strong>
         </div>
         <div>
           <span className="telemetry-label">Correct</span>
@@ -434,11 +438,14 @@ function LiveMultiplayerRace({
 
       {waitingForOthers ? (
         <section className="question-panel waiting-panel">
-          <Radio className="radio-pulse" size={30} />
-          <h1>Lap complete. Hold your line.</h1>
+          {tookFirst ? <Trophy size={30} /> : <Check size={30} />}
+          <h1>{tookFirst ? 'You took the flag.' : 'You crossed the line.'}</h1>
           <p>
-            Your answers are locked. The final flag drops when another racer
-            reaches mastery or every car completes the course.
+            Your car is across the finish line.{' '}
+            {racersRemaining === 1
+              ? 'One racer is still on course.'
+              : `${racersRemaining} racers are still on course.`}{' '}
+            The final standings appear when everyone finishes.
           </p>
         </section>
       ) : question ? (
@@ -447,7 +454,7 @@ function LiveMultiplayerRace({
           aria-labelledby="multiplayer-question-heading"
         >
           <div className="question-panel__meta">
-            <span>Live question {cursor + 1}</span>
+            <span>Live turn {cursor + 1}</span>
             <span className={`difficulty difficulty--${question.difficulty}`}>
               <Zap size={13} aria-hidden="true" />{' '}
               {difficultyLabel[question.difficulty]}
@@ -509,7 +516,7 @@ function LiveMultiplayerRace({
                 <p>{outcome.explanation}</p>
               </div>
               <Button className="continue-button" onClick={advance}>
-                Next turn <ArrowRight size={16} />
+                Next question <ArrowRight size={16} />
               </Button>
             </div>
           )}
@@ -532,7 +539,8 @@ function MultiplayerResults({
         (a, b) =>
           Number(b.id === room.winnerPlayerId) -
             Number(a.id === room.winnerPlayerId) ||
-          b.correctCount - a.correctCount ||
+          (a.finishedAtMs ?? Number.POSITIVE_INFINITY) -
+            (b.finishedAtMs ?? Number.POSITIVE_INFINITY) ||
           b.score - a.score,
       ),
     [room.players, room.winnerPlayerId],
@@ -544,6 +552,7 @@ function MultiplayerResults({
 
   return (
     <div className="multiplayer-results">
+      <MultiplayerTrack room={room} />
       <section className="multiplayer-results__hero">
         <div className="finish-emblem finish-emblem--passed">
           {didWin ? <Trophy size={32} /> : <Crown size={32} />}
@@ -557,8 +566,8 @@ function MultiplayerResults({
             : `${winner?.displayName ?? 'A racer'} takes the flag.`}
         </h1>
         <p>
-          One frozen study set, one shared finish line. Your result reflects
-          mastery inside this room—not a comparison to a different question mix.
+          Every car moved on correct answers only. The first racer to mastery
+          won, and every racer completed the same finish target.
         </p>
         <Button className="start-button" size="lg" onClick={onExit}>
           Back to garage <ArrowRight size={17} />

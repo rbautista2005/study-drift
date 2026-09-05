@@ -2157,6 +2157,13 @@ a:focus-visible {
   top: 18px;
 }
 
+.multiplayer-lane__checkpoint {
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  bottom: 0;
+  position: absolute;
+  top: 0;
+}
+
 .multiplayer-lane__finish {
   color: var(--yellow);
   position: absolute;
@@ -2174,6 +2181,10 @@ a:focus-visible {
   transition: left 480ms cubic-bezier(0.2, 0.7, 0.2, 1);
   width: 29px;
   z-index: 2;
+}
+
+.multiplayer-car.is-finished {
+  animation: finish-line-pulse 700ms ease-out;
 }
 
 .multiplayer-car--1 {
@@ -2199,9 +2210,20 @@ a:focus-visible {
   box-shadow: 0 0 0 3px var(--yellow);
 }
 
+@keyframes finish-line-pulse {
+  50% {
+    box-shadow: 0 0 0 6px rgba(255, 207, 61, 0.35);
+    transform: scale(1.12);
+  }
+}
+
 .multiplayer-lane__score {
+  align-items: center;
+  display: flex;
+  gap: 3px;
   font-family: var(--font-geist-mono), monospace;
   font-size: 11px;
+  justify-content: flex-end;
   text-align: right;
 }
 
@@ -2235,6 +2257,11 @@ a:focus-visible {
   min-height: calc(100svh - 72px);
   padding: 56px clamp(20px, 6vw, 82px);
   position: relative;
+}
+
+.multiplayer-results > .multiplayer-track {
+  grid-column: 1 / -1;
+  width: 100%;
 }
 
 .multiplayer-results__hero {
