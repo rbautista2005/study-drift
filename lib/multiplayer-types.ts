@@ -18,6 +18,7 @@ export type MultiplayerPlayer = {
   answeredCount: number;
   streak: number;
   finished: boolean;
+  finishedAtMs: number | null;
 };
 
 export type MultiplayerRoom = {

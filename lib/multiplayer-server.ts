@@ -134,6 +134,7 @@ function publicPlayer(row: PlayerRow): MultiplayerPlayer {
     answeredCount: row.answered_count,
     streak: row.streak,
     finished: row.finished_at_ms !== null,
+    finishedAtMs: row.finished_at_ms,
   };
 }
 
@@ -167,10 +168,9 @@ async function roomView(room: RoomRow, meId: string): Promise<MultiplayerRoom> {
     .prepare(
       `SELECT * FROM race_players
        WHERE room_id = ?
-       ORDER BY CASE WHEN id = ? THEN 0 ELSE 1 END,
-                correct_count DESC, score DESC, joined_at_ms ASC`,
+       ORDER BY joined_at_ms ASC`,
     )
-    .bind(room.id, room.winner_player_id ?? '')
+    .bind(room.id)
     .all<PlayerRow>();
   const players = playerResult.results.map(publicPlayer);
   const me = players.find((player) => player.id === meId);
@@ -450,19 +450,20 @@ export async function answerQuestion(
   if (!deck)
     throw new MultiplayerError('This race deck version is unavailable.', 409);
   const questionIds = JSON.parse(room.question_ids_json) as string[];
-  const questionId = questionIds[player.answered_count];
+  const questionId = questionIds[player.answered_count % questionIds.length];
   const question = deck.questions.find(
     (candidate) => candidate.id === questionId,
   );
   if (!question)
     throw new MultiplayerError('The next race question is unavailable.', 409);
+  const attemptQuestionId = `${question.id}:${player.answered_count + 1}`;
 
   const existing = await getDatabase()
     .prepare(
       `SELECT selected_index, correct, points_awarded FROM race_answers
        WHERE room_id = ? AND player_id = ? AND question_id = ? LIMIT 1`,
     )
-    .bind(room.id, player.id, question.id)
+    .bind(room.id, player.id, attemptQuestionId)
     .first<AnswerRow>();
   if (existing) {
     const outcome: AnswerOutcome = {
@@ -484,8 +485,7 @@ export async function answerQuestion(
   const nextCorrectCount = player.correct_count + (correct ? 1 : 0);
   const nextScore = player.score + pointsAwarded;
   const passed = nextCorrectCount >= room.mastery_target;
-  const exhausted = nextAnsweredCount >= questionIds.length;
-  const finishedAtMs = passed || exhausted ? Date.now() : null;
+  const finishedAtMs = passed ? Date.now() : null;
 
   const db = getDatabase();
   const statements = [
@@ -498,19 +498,26 @@ export async function answerQuestion(
         SELECT ?, ?, ?, ?, ?, ?, ?, ?
         WHERE EXISTS (
           SELECT 1 FROM race_rooms
-          WHERE id = ? AND status = 'racing' AND winner_player_id IS NULL
+          WHERE id = ? AND status = 'racing'
+        ) AND EXISTS (
+          SELECT 1 FROM race_players
+          WHERE id = ? AND room_id = ? AND finished_at_ms IS NULL
+            AND answered_count = ?
         )`,
       )
       .bind(
         requestId,
         room.id,
         player.id,
-        question.id,
+        attemptQuestionId,
         answerIndex,
         correct ? 1 : 0,
         pointsAwarded,
         Date.now(),
         room.id,
+        player.id,
+        room.id,
+        player.answered_count,
       ),
     db
       .prepare(
@@ -536,36 +543,27 @@ export async function answerQuestion(
       db
         .prepare(
           `UPDATE race_rooms
-           SET status = 'finished', winner_player_id = ?, version = version + 1
+           SET winner_player_id = ?, version = version + 1
            WHERE id = ? AND status = 'racing' AND winner_player_id IS NULL
              AND EXISTS (SELECT 1 FROM race_answers WHERE request_id = ?)`,
         )
         .bind(player.id, room.id, requestId),
     );
-  } else if (exhausted) {
-    statements.push(
-      db
-        .prepare(
-          `UPDATE race_rooms
-           SET status = 'finished',
-               winner_player_id = (
-                 SELECT id FROM race_players WHERE room_id = ?
-                 ORDER BY correct_count DESC, score DESC,
-                          finished_at_ms ASC, joined_at_ms ASC LIMIT 1
-               ),
-               version = version + 1
-           WHERE id = ? AND status = 'racing'
-             AND EXISTS (SELECT 1 FROM race_answers WHERE request_id = ?)
-             AND NOT EXISTS (
-               SELECT 1 FROM race_players
-               WHERE room_id = ? AND finished_at_ms IS NULL
-             )`,
-        )
-        .bind(room.id, room.id, requestId, room.id),
-    );
   }
 
   statements.push(
+    db
+      .prepare(
+        `UPDATE race_rooms
+         SET status = 'finished', version = version + 1
+         WHERE id = ? AND status = 'racing'
+           AND EXISTS (SELECT 1 FROM race_answers WHERE request_id = ?)
+           AND NOT EXISTS (
+             SELECT 1 FROM race_players
+             WHERE room_id = ? AND finished_at_ms IS NULL
+           )`,
+      )
+      .bind(room.id, requestId, room.id),
     db
       .prepare(
         `UPDATE race_rooms SET version = version + 1
