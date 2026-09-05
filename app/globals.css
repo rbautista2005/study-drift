@@ -517,6 +517,11 @@ a:focus-visible {
   outline-offset: 3px;
 }
 
+.import-mode button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
 .import-fields {
   display: grid;
   gap: 14px;
@@ -773,6 +778,20 @@ a:focus-visible {
   left: 0;
   position: absolute;
   width: 38%;
+}
+
+.ai-scan-status--ready {
+  background: #173d2a;
+  padding-bottom: 14px;
+}
+
+.ai-scan-status--ready .ai-scan-status__light {
+  background: #9ad5a8;
+  color: #173d2a;
+}
+
+.ai-scan-status--ready small {
+  color: #cce7d3;
 }
 
 @keyframes scanner-pass {

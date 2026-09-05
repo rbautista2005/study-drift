@@ -42,8 +42,7 @@ function titleFromFile(fileName: string) {
 }
 
 function formatFileSize(bytes: number) {
-  if (bytes < 1024 * 1024)
-    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
@@ -57,15 +56,30 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedSet, setGeneratedSet] = useState<StudySet | null>(null);
   const [error, setError] = useState('');
   const factCount = useMemo(
     () => countImportableFacts(sourceText),
     [sourceText],
   );
+  const generatedConceptCount = useMemo(
+    () =>
+      generatedSet
+        ? new Set(generatedSet.questions.map((question) => question.conceptId))
+            .size
+        : 0,
+    [generatedSet],
+  );
+
+  const changeOpen = (nextOpen: boolean) => {
+    if (isGenerating && !nextOpen) return;
+    setOpen(nextOpen);
+  };
 
   const chooseFile = (file: File | undefined) => {
     if (!file) return;
     setError('');
+    setGeneratedSet(null);
     if (!acceptedFilePattern.test(file.name)) {
       setSelectedFile(null);
       setError('Use a PDF, Word document, JPG, PNG, TXT, or Markdown file.');
@@ -94,6 +108,7 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
     }
 
     setError('');
+    setGeneratedSet(null);
     setIsGenerating(true);
     const formData = new FormData();
     formData.set('file', selectedFile);
@@ -110,11 +125,13 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
         studySet?: StudySet;
       };
       if (!response.ok || !payload.studySet) {
-        throw new Error(payload.error || 'The study set could not be generated.');
+        throw new Error(
+          payload.error || 'The study set could not be generated.',
+        );
       }
 
       onImport(payload.studySet);
-      setOpen(false);
+      setGeneratedSet(payload.studySet);
     } catch (generateError) {
       setError(
         generateError instanceof Error
@@ -141,6 +158,7 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
 
   const submit = (event: { preventDefault(): void }) => {
     event.preventDefault();
+    if (isGenerating) return;
     setError('');
     if (mode === 'file') {
       void generateSet();
@@ -150,7 +168,11 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      disablePointerDismissal={isGenerating}
+      open={open}
+      onOpenChange={changeOpen}
+    >
       <Button
         className="import-trigger"
         onClick={() => setOpen(true)}
@@ -159,7 +181,7 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
       >
         <Upload size={16} aria-hidden="true" /> Import guide
       </Button>
-      <DialogContent className="import-dialog">
+      <DialogContent className="import-dialog" showCloseButton={!isGenerating}>
         <DialogHeader className="import-dialog__header">
           <span className="telemetry-label">AI track builder</span>
           <DialogTitle>Turn any guide into a race.</DialogTitle>
@@ -169,14 +191,24 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form className="import-form" onSubmit={submit}>
-          <div className="import-mode" role="tablist" aria-label="Import method">
+        <form
+          aria-busy={isGenerating}
+          className="import-form"
+          onSubmit={submit}
+        >
+          <div
+            className="import-mode"
+            role="tablist"
+            aria-label="Import method"
+          >
             <button
               aria-selected={mode === 'file'}
               className={mode === 'file' ? 'is-selected' : ''}
+              disabled={isGenerating}
               onClick={() => {
                 setMode('file');
                 setError('');
+                setGeneratedSet(null);
               }}
               role="tab"
               type="button"
@@ -186,9 +218,11 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
             <button
               aria-selected={mode === 'text'}
               className={mode === 'text' ? 'is-selected' : ''}
+              disabled={isGenerating}
               onClick={() => {
                 setMode('text');
                 setError('');
+                setGeneratedSet(null);
               }}
               role="tab"
               type="button"
@@ -203,7 +237,10 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
               <input
                 disabled={isGenerating}
                 maxLength={60}
-                onChange={(event) => setTitle(event.target.value)}
+                onChange={(event) => {
+                  setTitle(event.target.value);
+                  setGeneratedSet(null);
+                }}
                 required
                 value={title}
               />
@@ -213,7 +250,10 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
               <input
                 disabled={isGenerating}
                 maxLength={30}
-                onChange={(event) => setCourse(event.target.value)}
+                onChange={(event) => {
+                  setCourse(event.target.value);
+                  setGeneratedSet(null);
+                }}
                 required
                 value={course}
               />
@@ -294,6 +334,23 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
                   </span>
                   <span className="ai-scan-status__meter" aria-hidden="true" />
                 </output>
+              ) : generatedSet ? (
+                <output
+                  className="ai-scan-status ai-scan-status--ready"
+                  aria-live="polite"
+                >
+                  <span className="ai-scan-status__light">
+                    <Check size={17} aria-hidden="true" />
+                  </span>
+                  <span>
+                    <strong>Track ready</strong>
+                    <small>
+                      {generatedConceptCount} concepts ·{' '}
+                      {generatedSet.questions.length} question variants. This
+                      study set is now selected in your garage.
+                    </small>
+                  </span>
+                </output>
               ) : (
                 <div className="format-hint format-hint--ai">
                   <Sparkles size={17} aria-hidden="true" />
@@ -343,7 +400,7 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
               type="button"
               variant="ghost"
             >
-              Cancel
+              {generatedSet ? 'Done' : 'Cancel'}
             </Button>
             <Button
               className="start-button"
@@ -353,7 +410,11 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
               {mode === 'file' ? (
                 <>
                   <Sparkles size={16} aria-hidden="true" />
-                  {isGenerating ? 'Generating questions…' : 'Generate race'}
+                  {isGenerating
+                    ? 'Generating questions…'
+                    : generatedSet
+                      ? 'Rebuild race'
+                      : 'Generate race'}
                 </>
               ) : (
                 <>
