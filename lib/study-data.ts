@@ -532,6 +532,20 @@ function ensureQuestionBank(set: StudySet, minimum = 25): StudySet {
   return { ...set, questions };
 }
 
+function keepOneQuestionPerConcept(set: StudySet): StudySet {
+  const seenConceptIds = new Set<string>();
+  return {
+    ...set,
+    questions: set.questions
+      .filter((question) => {
+        if (seenConceptIds.has(question.conceptId)) return false;
+        seenConceptIds.add(question.conceptId);
+        return true;
+      })
+      .map((question) => ({ ...question, variant: 0 })),
+  };
+}
+
 export const studySets = [
   biologyDemo,
   geneticsFoundations,
@@ -541,7 +555,7 @@ export const studySets = [
   worldHistory,
   psychologyLearning,
   ...expandedStudySets,
-].map((set) => ensureQuestionBank(set));
+].map((set) => ensureQuestionBank(keepOneQuestionPerConcept(set)));
 
 export const studySetGroups = Array.from(
   new Set(studySets.map(subjectFor)),
@@ -554,7 +568,7 @@ export function guideReviewCost(set: StudySet) {
   const averageDifficulty =
     set.questions.reduce((total, question) => total + question.difficulty, 0) /
     set.questions.length;
-  return Math.round((1000 + (averageDifficulty - 1) * 500) / 50) * 50;
+  return Math.round((150 + (averageDifficulty - 1) * 150) / 25) * 25;
 }
 
 export function buildLap(
@@ -588,7 +602,8 @@ export function buildLap(
   );
   const selectedGroups = Array.from(
     { length: conceptCount },
-    (_, index) => conceptGroups[index % conceptGroups.length],
+    (_, index) =>
+      conceptGroups[(lap * conceptCount + index) % conceptGroups.length],
   );
   const lapQuestions = selectedGroups.map((variants, index) => {
     const ordered = [...variants].sort((a, b) => a.variant - b.variant);
