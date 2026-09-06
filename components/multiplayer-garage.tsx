@@ -11,6 +11,7 @@ import {
   Users,
 } from 'lucide-react';
 import { StudyGuideImporter } from '@/components/study-guide-importer';
+import { RaceTimerSetting } from '@/components/race-timer-setting';
 import { Button } from '@/components/ui/button';
 import {
   createMultiplayerRoom,
@@ -21,18 +22,29 @@ import type {
   MultiplayerRoom,
   MultiplayerSession,
 } from '@/lib/multiplayer-types';
-import { buildLap, type StudySet } from '@/lib/study-data';
+import {
+  buildLap,
+  studySetGroups,
+  studySets,
+  type StudySet,
+} from '@/lib/study-data';
 
 type MultiplayerGarageProps = {
   onConnected: (session: MultiplayerSession, room: MultiplayerRoom) => void;
   onImport: (studySet: StudySet) => void;
+  onSelectSet: (setId: string) => void;
   studySet: StudySet;
+  questionTimeLimitSeconds: number | null;
+  onQuestionTimeLimitChange: (seconds: number | null) => void;
 };
 
 export function MultiplayerGarage({
   onConnected,
   onImport,
+  onSelectSet,
   studySet,
+  questionTimeLimitSeconds,
+  onQuestionTimeLimitChange,
 }: MultiplayerGarageProps) {
   const [intent, setIntent] = useState<'create' | 'join'>('create');
   const [displayName, setDisplayName] = useState('');
@@ -40,6 +52,7 @@ export function MultiplayerGarage({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const questionCount = buildLap(studySet, 0).length;
+  const builtIn = studySets.some((set) => set.id === studySet.id);
 
   const submit = async (event: { preventDefault(): void }) => {
     event.preventDefault();
@@ -49,7 +62,7 @@ export function MultiplayerGarage({
     try {
       const response =
         intent === 'create'
-          ? await createMultiplayerRoom(displayName, studySet)
+          ? await createMultiplayerRoom(displayName, studySet, questionTimeLimitSeconds)
           : await joinMultiplayerRoom(code, displayName);
       if (!response.session)
         throw new Error('The lobby session was not created.');
@@ -134,6 +147,31 @@ export function MultiplayerGarage({
                 </small>
               </span>
             </div>
+            <label className="study-set-picker">
+              <span>Choose a study set</span>
+              <select
+                aria-label="Choose a study set for the multiplayer race"
+                onChange={(event) => onSelectSet(event.target.value)}
+                value={builtIn ? studySet.id : ''}
+              >
+                <option value="" disabled>
+                  Imported study set
+                </option>
+                {studySetGroups.map((group) => (
+                  <optgroup key={group.subject} label={group.subject}>
+                    {group.sets.map((set) => (
+                      <option key={set.id} value={set.id}>
+                        {set.course} · {set.title}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+            <RaceTimerSetting
+              value={questionTimeLimitSeconds}
+              onChange={onQuestionTimeLimitChange}
+            />
             <StudyGuideImporter
               onImport={onImport}
               readyMessage="This set will be locked for everyone when you create the lobby."

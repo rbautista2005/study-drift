@@ -90,6 +90,7 @@ npm run build
 cd dist/server
 npx wrangler d1 execute DB --local --file=../../drizzle/0000_tiny_morlun.sql --config wrangler.json
 npx wrangler d1 execute DB --local --file=../../drizzle/0001_chief_white_queen.sql --config wrangler.json
+npx wrangler d1 execute DB --local --file=../../drizzle/0002_question_timer.sql --config wrangler.json
 cd ../..
 ```
 
@@ -141,7 +142,7 @@ vite.config.ts                        Vite, Cloudflare, and local environment se
 
 ## Troubleshooting
 
-**The app starts, but creating a multiplayer room fails.** Apply both migrations in the “Multiplayer races and local D1” section, then restart the development server. The `race_rooms`, `race_players`, and `race_answers` tables must exist.
+**The app starts, but creating a multiplayer room fails.** Apply every migration in the “Multiplayer races and local D1” section, then restart the development server. The `race_rooms`, `race_players`, and `race_answers` tables must exist.
 
 **“AI imports need an OpenAI API key on the server.”** Add `OPENAI_API_KEY` to `.env` and restart the server. Check that the key belongs to a project with access to the configured model.
 

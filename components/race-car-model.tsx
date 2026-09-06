@@ -46,6 +46,41 @@ const silhouettes: Record<
     spoiler: 'M7 12h29l4 5H10l-3-5Z',
     window: 'M48 17 59 10h15l6 9-32-2Z',
   },
+  pickup: {
+    body: 'M4 29c1-7 6-10 15-10h22V8h25l10 11h15c7 0 11 4 11 10v4H4v-4Z',
+    highlight: 'M13 22h29V11h21l9 11h19l-5 4H14l-1-4Z',
+    intake: 'M69 24h25l-5 5H70l-1-5Z',
+    spoiler: 'M7 14h26v4H8l-1-4Z',
+    window: 'M45 17V11h16l9 8-25-2Z',
+  },
+  bus: {
+    body: 'M4 28c0-7 4-11 12-12V7h64c9 0 15 7 15 16v10H4v-5Z',
+    highlight: 'M10 22h80v5H10v-5Z',
+    intake: 'M78 27h15v3H78v-3Z',
+    spoiler: 'M8 12h82v4H8v-4Z',
+    window: 'M19 11h12v9H19v-9Zm16 0h12v9H35v-9Zm16 0h12v9H51v-9Zm16 0h12v9H67v-9Z',
+  },
+  motorcycle: {
+    body: 'M17 29h14l12-13h18l8 9h17l8 5v3H16l1-4Z',
+    highlight: 'M31 27 45 18h13l7 9H31Z',
+    intake: 'M63 25h18l-5 4H64l-1-4Z',
+    spoiler: 'M40 13h16l3 3H42l-2-3Z',
+    window: 'M47 17l6-8h10l-2 8H47Z',
+  },
+  scooter: {
+    body: 'M14 29h31l7-17h9l-2 13h22c8 0 13 3 15 8H14v-4Z',
+    highlight: 'M24 26h29l4-10h3l-2 10H24Z',
+    intake: 'M64 27h20l-4 3H64v-3Z',
+    spoiler: 'M50 8h12v4H50V8Z',
+    window: 'M54 14 57 7h7l-1 7h-9Z',
+  },
+  quirky: {
+    body: 'M9 29c0-7 5-11 13-11V8h48c8 0 13 5 13 12v1h11c5 0 8 4 8 9v3H9v-4Z',
+    highlight: 'M26 12h40v15H26V12Z',
+    intake: 'M77 25h18l-4 4H77v-4Z',
+    spoiler: 'M28 5h11l3 8H30l-2-8Zm28 0h11l-1 8H54l2-8Z',
+    window: 'M31 15h30v9H31v-9Z',
+  },
 };
 
 export function RaceCarModel({

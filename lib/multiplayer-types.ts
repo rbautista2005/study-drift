@@ -30,6 +30,7 @@ export type MultiplayerRoom = {
   questionIds: string[];
   questions: MultiplayerQuestion[];
   masteryTarget: number;
+  questionTimeLimitSeconds: number | null;
   maxPlayers: number;
   winnerPlayerId: string | null;
   version: number;

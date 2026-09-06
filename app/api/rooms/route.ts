@@ -36,7 +36,14 @@ export async function POST(request: Request) {
 
     switch (body.action) {
       case 'create':
-        return json(await createRoom(body.displayName, body.studySet), 201);
+        return json(
+          await createRoom(
+            body.displayName,
+            body.studySet,
+            body.questionTimeLimitSeconds,
+          ),
+          201,
+        );
       case 'join':
         return json(await joinRoom(body.code, body.displayName), 201);
       case 'ready':

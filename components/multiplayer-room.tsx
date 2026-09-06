@@ -16,6 +16,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { MultiplayerTrack } from '@/components/multiplayer-track';
+import { QuestionTimer } from '@/components/question-timer';
 import { Button } from '@/components/ui/button';
 import type { CarSpec } from '@/lib/car-locker';
 import {
@@ -211,6 +212,9 @@ function Lobby({
             <strong>Locked race blueprint.</strong> {room.questionIds.length}{' '}
             questions from {room.studySetTitle} · first to {room.masteryTarget}{' '}
             correct wins · every racer finishes · {room.deckVersion}
+            {room.questionTimeLimitSeconds
+              ? ` · ${room.questionTimeLimitSeconds}s per question`
+              : ''}
           </p>
         </div>
       </section>
@@ -467,11 +471,19 @@ function LiveMultiplayerRace({
         >
           <div className="question-panel__meta">
             <span>Live turn {cursor + 1}</span>
-            <span className={`difficulty difficulty--${question.difficulty}`}>
+          <span className={`difficulty difficulty--${question.difficulty}`}>
               <Zap size={13} aria-hidden="true" />{' '}
               {difficultyLabel[question.difficulty]}
             </span>
-            <span>{question.topic}</span>
+          <span>{question.topic}</span>
+          {room.questionTimeLimitSeconds !== null && (
+            <QuestionTimer
+              key={`${cursor}-${room.me.answeredCount}`}
+              onExpire={() => void submit(-1)}
+              paused={Boolean(outcome) || pending}
+              seconds={room.questionTimeLimitSeconds}
+            />
+          )}
           </div>
           <h1 id="multiplayer-question-heading">{question.prompt}</h1>
           <fieldset className="answer-grid">
@@ -521,7 +533,7 @@ function LiveMultiplayerRace({
                     </>
                   ) : (
                     <>
-                      <X size={18} /> No boost this turn
+                      <X size={18} /> {selectedIndex === -1 ? 'Time ran out' : 'No boost this turn'}
                     </>
                   )}
                 </span>

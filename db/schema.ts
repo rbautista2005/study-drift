@@ -17,6 +17,7 @@ export const raceRooms = sqliteTable(
     deckVersion: text('deck_version').notNull(),
     questionIdsJson: text('question_ids_json').notNull(),
     masteryTarget: integer('mastery_target').notNull(),
+    questionTimeLimitSeconds: integer('question_time_limit_seconds'),
     maxPlayers: integer('max_players').notNull().default(4),
     hostPlayerId: text('host_player_id').notNull(),
     winnerPlayerId: text('winner_player_id'),
