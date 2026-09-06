@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import {
   ArrowRight,
+  BookOpen,
   Check,
   Copy,
   LoaderCircle,
   ShieldCheck,
   Users,
 } from 'lucide-react';
+import { StudyGuideImporter } from '@/components/study-guide-importer';
 import { Button } from '@/components/ui/button';
 import {
   createMultiplayerRoom,
@@ -19,17 +21,27 @@ import type {
   MultiplayerRoom,
   MultiplayerSession,
 } from '@/lib/multiplayer-types';
+import type { StudySet } from '@/lib/study-data';
 
 type MultiplayerGarageProps = {
   onConnected: (session: MultiplayerSession, room: MultiplayerRoom) => void;
+  onImport: (studySet: StudySet) => void;
+  studySet: StudySet;
 };
 
-export function MultiplayerGarage({ onConnected }: MultiplayerGarageProps) {
+export function MultiplayerGarage({
+  onConnected,
+  onImport,
+  studySet,
+}: MultiplayerGarageProps) {
   const [intent, setIntent] = useState<'create' | 'join'>('create');
   const [displayName, setDisplayName] = useState('');
   const [code, setCode] = useState('');
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
+  const questionCount = new Set(
+    studySet.questions.map((question) => question.conceptId),
+  ).size;
 
   const submit = async (event: { preventDefault(): void }) => {
     event.preventDefault();
@@ -39,7 +51,7 @@ export function MultiplayerGarage({ onConnected }: MultiplayerGarageProps) {
     try {
       const response =
         intent === 'create'
-          ? await createMultiplayerRoom(displayName)
+          ? await createMultiplayerRoom(displayName, studySet)
           : await joinMultiplayerRoom(code, displayName);
       if (!response.session)
         throw new Error('The lobby session was not created.');
@@ -62,10 +74,9 @@ export function MultiplayerGarage({ onConnected }: MultiplayerGarageProps) {
         <span className="telemetry-label">Live lobby · Same frozen deck</span>
         <h2>Line up with your crew.</h2>
         <p>
-          Everyone races the same concepts, difficulty mix, and question order.
-          Correct answers move your car. The first racer to reach the full
-          correct-answer target takes the flag, while everyone else keeps racing
-          to the line.
+          The host chooses the study set. Everyone then races the same concepts,
+          difficulty mix, and question order. Correct answers move your car; the
+          first racer to complete the set takes the flag.
         </p>
         <div className="fairness-strip">
           <ShieldCheck size={18} aria-hidden="true" />
@@ -97,6 +108,42 @@ export function MultiplayerGarage({ onConnected }: MultiplayerGarageProps) {
             <Copy size={16} aria-hidden="true" /> Join code
           </button>
         </div>
+
+        {intent === 'create' && (
+          <section
+            aria-labelledby="shared-race-set-heading"
+            className="shared-set-picker"
+          >
+            <div className="shared-set-picker__header">
+              <span
+                className="telemetry-label"
+                id="shared-race-set-heading"
+              >
+                Shared race set
+              </span>
+              <span className="shared-set-picker__lock">
+                <ShieldCheck size={13} aria-hidden="true" /> Frozen deck
+              </span>
+            </div>
+            <div className="shared-set-picker__selection">
+              <span className="shared-set-picker__icon">
+                <BookOpen size={18} aria-hidden="true" />
+              </span>
+              <span>
+                <strong>{studySet.title}</strong>
+                <small>
+                  {studySet.course} · {questionCount} questions
+                </small>
+              </span>
+            </div>
+            <StudyGuideImporter
+              onImport={onImport}
+              readyMessage="This set will be locked for everyone when you create the lobby."
+              triggerLabel="Upload study set"
+            />
+            <p>Every racer receives this exact ordered question deck.</p>
+          </section>
+        )}
 
         <label>
           <span>Your racer name</span>

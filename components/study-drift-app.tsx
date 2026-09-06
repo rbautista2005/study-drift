@@ -501,7 +501,11 @@ function Garage({
             </div>
           </article>
         ) : (
-          <MultiplayerGarage onConnected={onMultiplayerConnected} />
+          <MultiplayerGarage
+            onConnected={onMultiplayerConnected}
+            onImport={onImport}
+            studySet={studySet}
+          />
         )}
       </section>
 

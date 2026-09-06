@@ -171,7 +171,7 @@ function Lobby({
         <h1>Waiting on the grid.</h1>
         <p>
           Share the room code, have every racer ready up, then launch the same
-          five-question rotation together.
+          host-selected question deck together.
         </p>
 
         <button

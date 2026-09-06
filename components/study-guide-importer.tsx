@@ -29,6 +29,8 @@ Cell transport | Diffusion: Net movement of particles from high to low concentra
 
 type StudyGuideImporterProps = {
   onImport: (studySet: StudySet) => void;
+  readyMessage?: string;
+  triggerLabel?: string;
 };
 
 type ImportMode = 'file' | 'text';
@@ -46,7 +48,11 @@ function formatFileSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
+export function StudyGuideImporter({
+  onImport,
+  readyMessage = 'This study set is now selected in your garage.',
+  triggerLabel = 'Import guide',
+}: StudyGuideImporterProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<ImportMode>('file');
@@ -179,7 +185,7 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
         type="button"
         variant="outline"
       >
-        <Upload size={16} aria-hidden="true" /> Import guide
+        <Upload size={16} aria-hidden="true" /> {triggerLabel}
       </Button>
       <DialogContent className="import-dialog" showCloseButton={!isGenerating}>
         <DialogHeader className="import-dialog__header">
@@ -346,8 +352,8 @@ export function StudyGuideImporter({ onImport }: StudyGuideImporterProps) {
                     <strong>Track ready</strong>
                     <small>
                       {generatedConceptCount} concepts ·{' '}
-                      {generatedSet.questions.length} question variants. This
-                      study set is now selected in your garage.
+                      {generatedSet.questions.length} question variants.{' '}
+                      {readyMessage}
                     </small>
                   </span>
                 </output>

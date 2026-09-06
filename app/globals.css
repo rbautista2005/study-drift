@@ -1996,6 +1996,85 @@ a:focus-visible {
   color: var(--ink);
 }
 
+.shared-set-picker {
+  background: #f4f5f0;
+  border: 1px solid var(--line);
+  padding: 14px;
+}
+
+.shared-set-picker__header,
+.shared-set-picker__selection {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.shared-set-picker__lock {
+  align-items: center;
+  color: #19796f;
+  display: inline-flex;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 8px;
+  font-weight: 750;
+  gap: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.shared-set-picker__selection {
+  justify-content: flex-start;
+  margin: 13px 0;
+}
+
+.shared-set-picker__icon {
+  align-items: center;
+  background: var(--ink);
+  color: white;
+  display: flex;
+  flex: 0 0 auto;
+  height: 38px;
+  justify-content: center;
+  margin-right: 11px;
+  transform: rotate(-2deg);
+  width: 38px;
+}
+
+.shared-set-picker__selection > span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shared-set-picker__selection strong,
+.shared-set-picker__selection small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shared-set-picker__selection strong {
+  font-size: 13px;
+}
+
+.shared-set-picker__selection small {
+  color: var(--muted-text);
+  font-size: 10px;
+  margin-top: 3px;
+}
+
+.shared-set-picker .import-trigger {
+  justify-content: center;
+  min-height: 40px;
+  width: 100%;
+}
+
+.shared-set-picker > p {
+  color: var(--muted-text);
+  font-size: 10px;
+  line-height: 1.45;
+  margin: 10px 0 0;
+}
+
 .lobby-form label {
   display: flex;
   flex-direction: column;
