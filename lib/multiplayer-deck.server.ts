@@ -93,6 +93,10 @@ const deckRegistry = new Map<string, ServerDeck>([
   [earthSystemsV1.version, earthSystemsV1],
 ]);
 
+const MIN_MULTIPLAYER_CONCEPTS = 4;
+const MAX_MULTIPLAYER_CONCEPTS = 10;
+const MAX_STUDY_SET_QUESTIONS = 48;
+
 function cleanText(value: unknown, label: string, maxLength: number) {
   if (typeof value !== 'string') throw new Error(`${label} is missing.`);
   const cleaned = value.replace(/\s+/g, ' ').trim();
@@ -166,10 +170,10 @@ export function freezeMultiplayerStudySet(value: unknown): ServerDeck {
   const studySet = value as Partial<StudySet>;
   if (
     !Array.isArray(studySet.questions) ||
-    studySet.questions.length < 4 ||
-    studySet.questions.length > 48
+    studySet.questions.length < MIN_MULTIPLAYER_CONCEPTS ||
+    studySet.questions.length > MAX_STUDY_SET_QUESTIONS
   ) {
-    throw new Error('A multiplayer study set needs 4–12 clear concepts.');
+    throw new Error('A multiplayer study set needs 4–48 usable questions.');
   }
 
   const questionsByConcept = new Map<
@@ -183,11 +187,12 @@ export function freezeMultiplayerStudySet(value: unknown): ServerDeck {
       questionsByConcept.set(frozen.conceptId, frozen);
   });
 
-  if (questionsByConcept.size < 4 || questionsByConcept.size > 12)
-    throw new Error('A multiplayer study set needs 4–12 clear concepts.');
-  const questions = Array.from(questionsByConcept.values(), ({ question }) =>
-    question,
-  );
+  if (questionsByConcept.size < MIN_MULTIPLAYER_CONCEPTS)
+    throw new Error('A multiplayer study set needs at least 4 clear concepts.');
+  const questions = Array.from(
+    questionsByConcept.values(),
+    ({ question }) => question,
+  ).slice(0, MAX_MULTIPLAYER_CONCEPTS);
   if (new Set(questions.map((question) => question.id)).size !== questions.length)
     throw new Error('Every multiplayer question needs a unique id.');
 

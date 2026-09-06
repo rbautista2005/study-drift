@@ -573,8 +573,9 @@ export function buildLap(
 
   const conceptGroups = Array.from(concepts.values());
   const defaultConceptCount = Math.min(10, conceptGroups.length);
+  const minimumConceptCount = Math.min(5, conceptGroups.length);
   const conceptCount = Math.max(
-    5,
+    minimumConceptCount,
     Math.min(10, config?.conceptCount ?? defaultConceptCount),
   );
   const defaultQuestionCount = Math.min(
