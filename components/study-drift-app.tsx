@@ -144,8 +144,10 @@ function sampleRaceQuestions(
   return shuffleAnswerChoices(selected);
 }
 
-function learningResources(topic: string) {
-  const query = encodeURIComponent(topic);
+function learningResources(topic: string, studySet: StudySet) {
+  const query = encodeURIComponent(
+    `${studySet.course} ${studySet.title} ${topic}`,
+  );
   return [
     {
       label: "Lesson search",
@@ -496,6 +498,7 @@ export function StudyDriftApp() {
           playerProgress={playerProgress}
           records={records}
           score={score}
+          studySet={studySet}
           onRetry={practiceWeakestSector}
           onGarage={() => setScreen("garage")}
           onLocker={() => setScreen("locker")}
@@ -1067,6 +1070,7 @@ function PitReport({
   playerProgress,
   records,
   score,
+  studySet,
   onRetry,
   onGarage,
   onLocker,
@@ -1076,6 +1080,7 @@ function PitReport({
   playerProgress: PlayerProgress;
   records: AnswerRecord[];
   score: number;
+  studySet: StudySet;
   onRetry: (topic?: string) => void;
   onGarage: () => void;
   onLocker: () => void;
@@ -1206,20 +1211,22 @@ function PitReport({
                       </span>
                     </div>
                     <div className="learning-resource__links">
-                      {learningResources(topic.topic).map((resource) => (
-                        <a
-                          href={resource.url}
-                          key={resource.provider}
-                          rel="noopener noreferrer"
-                          target="_blank"
-                        >
-                          <span>
-                            <small>{resource.provider}</small>
-                            {resource.label}
-                          </span>
-                          <ExternalLink size={14} aria-hidden="true" />
-                        </a>
-                      ))}
+                      {learningResources(topic.topic, studySet).map(
+                        (resource) => (
+                          <a
+                            href={resource.url}
+                            key={resource.provider}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                          >
+                            <span>
+                              <small>{resource.provider}</small>
+                              {resource.label}
+                            </span>
+                            <ExternalLink size={14} aria-hidden="true" />
+                          </a>
+                        ),
+                      )}
                     </div>
                   </article>
                 );
