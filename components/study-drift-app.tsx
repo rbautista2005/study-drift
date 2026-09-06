@@ -94,7 +94,6 @@ export function StudyDriftApp() {
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [speed, setSpeed] = useState(0);
-  const [boost, setBoost] = useState(false);
   const [playerProgress, setPlayerProgress] =
     useState<PlayerProgress>(emptyPlayerProgress);
   const [lastReward, setLastReward] = useState<RaceReward | null>(null);
@@ -109,6 +108,7 @@ export function StudyDriftApp() {
       ? 100
       : Math.min(96, (answeredCount / questions.length) * 100);
   const isAnswered = selectedIndex !== null;
+  const boost = streak > 0;
 
   const resetRace = useCallback(
     (nextLap: number) => {
@@ -119,7 +119,6 @@ export function StudyDriftApp() {
       setScore(0);
       setStreak(0);
       setSpeed(0);
-      setBoost(false);
       setLastReward(null);
       raceCompletionRef.current = false;
       setLap(nextLap);
@@ -137,7 +136,6 @@ export function StudyDriftApp() {
     setScore(0);
     setStreak(0);
     setSpeed(0);
-    setBoost(false);
     setLastReward(null);
     raceCompletionRef.current = false;
     setLap(0);
@@ -169,7 +167,6 @@ export function StudyDriftApp() {
       setSpeed(
         correct ? speedForAnswer(currentQuestion.difficulty, nextStreak) : 34,
       );
-      setBoost(correct);
       setRecords((current) => [
         ...current,
         {
@@ -186,7 +183,6 @@ export function StudyDriftApp() {
 
   const advance = useCallback(() => {
     if (selectedIndex === null) return;
-    setBoost(false);
 
     if (questionIndex >= questions.length - 1) {
       if (raceCompletionRef.current) return;

@@ -9,13 +9,7 @@ function ordinal(position: number) {
   return `${position}th`;
 }
 
-export function MultiplayerTrack({
-  boostedPlayerId,
-  room,
-}: {
-  boostedPlayerId?: string;
-  room: MultiplayerRoom;
-}) {
+export function MultiplayerTrack({ room }: { room: MultiplayerRoom }) {
   const finishOrder = [...room.players]
     .filter((player) => player.finishedAtMs !== null)
     .sort(
@@ -60,7 +54,7 @@ export function MultiplayerTrack({
             : Math.max(2, progress * 0.92);
           const winner = room.winnerPlayerId === player.id;
           const finishPosition = finishPositionById.get(player.id);
-          const isBoosting = boostedPlayerId === player.id;
+          const isBoosting = player.streak > 0;
 
           return (
             <div

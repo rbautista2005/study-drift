@@ -434,10 +434,7 @@ function LiveMultiplayerRace({
           </strong>
         </div>
       </div>
-      <MultiplayerTrack
-        boostedPlayerId={outcome?.correct ? room.me.id : undefined}
-        room={room}
-      />
+      <MultiplayerTrack room={room} />
 
       {waitingForOthers ? (
         <section className="question-panel waiting-panel">
