@@ -1603,6 +1603,116 @@ a:focus-visible {
   text-align: right;
 }
 
+.learning-resources {
+  border-top: 1px solid var(--line);
+  padding: 20px 24px 16px;
+}
+
+.learning-resources__header {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.learning-resources__header h3 {
+  font-size: 18px;
+  letter-spacing: -0.035em;
+  margin: 3px 0 0;
+}
+
+.learning-resources__header > span {
+  color: var(--muted-text);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.learning-resource-list {
+  display: grid;
+}
+
+.learning-resource {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(110px, 0.8fr) minmax(220px, 1.2fr);
+  padding: 14px 0;
+}
+
+.learning-resource + .learning-resource {
+  border-top: 1px solid #e0e4e2;
+}
+
+.learning-resource__topic {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.learning-resource__topic strong {
+  font-size: 12px;
+}
+
+.learning-resource__topic span {
+  color: #9a351d;
+  font-size: 10px;
+}
+
+.learning-resource__links {
+  display: grid;
+  gap: 7px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.learning-resource__links a {
+  align-items: center;
+  background: #edf4f6;
+  border: 1px solid #c8d6d9;
+  color: var(--ink);
+  display: flex;
+  font-size: 11px;
+  gap: 8px;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 8px 10px;
+  text-decoration: none;
+}
+
+.learning-resource__links a:hover {
+  border-color: var(--orange);
+}
+
+.learning-resource__links a:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+.learning-resource__links a > span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.learning-resource__links small {
+  color: var(--muted-text);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.learning-resource__links svg {
+  color: var(--orange);
+  flex: 0 0 auto;
+}
+
+.learning-resources__empty {
+  background: #eaf7f4;
+  color: #0e6a60;
+  font-size: 11px;
+  margin: 14px 0 0;
+  padding: 11px 12px;
+}
+
 .insight-card {
   align-items: start;
   background: var(--ink);
@@ -2532,6 +2642,15 @@ a:focus-visible {
   }
   .sector-list {
     padding-inline: 16px;
+  }
+  .learning-resources {
+    padding-inline: 16px;
+  }
+  .learning-resource {
+    grid-template-columns: 1fr;
+  }
+  .learning-resource__links {
+    grid-template-columns: 1fr;
   }
 }
 

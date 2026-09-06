@@ -8,6 +8,7 @@ import {
   ChevronRight,
   CircleGauge,
   Coins,
+  ExternalLink,
   Flame,
   RotateCcw,
   Sparkles,
@@ -58,6 +59,22 @@ type Screen = 'garage' | 'race' | 'report' | 'multiplayer';
 type GarageMode = 'solo' | 'multiplayer';
 
 const choiceKeys = ['1', '2', '3', '4'];
+
+function learningResources(topic: string) {
+  const query = encodeURIComponent(topic);
+  return [
+    {
+      label: 'Lesson search',
+      provider: 'Khan Academy',
+      url: `https://www.khanacademy.org/search?page_search_query=${query}`,
+    },
+    {
+      label: 'Open textbook search',
+      provider: 'OpenStax',
+      url: `https://openstax.org/search?query=${query}`,
+    },
+  ];
+}
 
 export function StudyDriftApp() {
   const [screen, setScreen] = useState<Screen>('garage');
@@ -704,6 +721,7 @@ function PitReport({
   const correct = records.filter((record) => record.correct).length;
   const accuracy = Math.round((correct / records.length) * 100);
   const topics = useMemo(() => topicSummary(records), [records]);
+  const missedTopics = topics.filter((topic) => topic.correct < topic.total);
   const weakest = topics[0];
 
   return (
@@ -761,7 +779,11 @@ function PitReport({
             <span className="telemetry-label">Concept telemetry</span>
             <h2>Sector breakdown</h2>
           </div>
-          <span className="weakest-chip">Review: {weakest?.topic}</span>
+          <span className="weakest-chip">
+            {missedTopics.length > 0
+              ? `Review: ${weakest?.topic}`
+              : 'All sectors clear'}
+          </span>
         </div>
         <div className="sector-list">
           {topics.map((topic, index) => (
@@ -785,6 +807,59 @@ function PitReport({
             </div>
           ))}
         </div>
+        <section
+          className="learning-resources"
+          aria-labelledby="learning-resources-heading"
+        >
+          <div className="learning-resources__header">
+            <div>
+              <span className="telemetry-label">Targeted review</span>
+              <h3 id="learning-resources-heading">Learning resources</h3>
+            </div>
+            <span>
+              {missedTopics.length}{' '}
+              {missedTopics.length === 1 ? 'concept' : 'concepts'}
+            </span>
+          </div>
+          {missedTopics.length > 0 ? (
+            <div className="learning-resource-list">
+              {missedTopics.map((topic) => {
+                const missedCount = topic.total - topic.correct;
+                return (
+                  <article className="learning-resource" key={topic.topic}>
+                    <div className="learning-resource__topic">
+                      <strong>{topic.topic}</strong>
+                      <span>
+                        {missedCount}{' '}
+                        {missedCount === 1 ? 'question' : 'questions'} missed
+                      </span>
+                    </div>
+                    <div className="learning-resource__links">
+                      {learningResources(topic.topic).map((resource) => (
+                        <a
+                          href={resource.url}
+                          key={resource.provider}
+                          rel="noopener noreferrer"
+                          target="_blank"
+                        >
+                          <span>
+                            <small>{resource.provider}</small>
+                            {resource.label}
+                          </span>
+                          <ExternalLink size={14} aria-hidden="true" />
+                        </a>
+                      ))}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="learning-resources__empty">
+              No missed concepts this lap. Your sector report is clean.
+            </p>
+          )}
+        </section>
         <div className="insight-card">
           <Sparkles size={18} aria-hidden="true" />
           <div>
