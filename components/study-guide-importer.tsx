@@ -402,12 +402,19 @@ export function StudyGuideImporter({
 
           <div className="import-actions">
             <Button
+              className={`import-secondary-button${generatedSet ? ' is-complete' : ''}`}
               disabled={isGenerating}
               onClick={() => setOpen(false)}
               type="button"
               variant="ghost"
             >
-              {generatedSet ? 'Done' : 'Cancel'}
+              {generatedSet ? (
+                <>
+                  <Check size={16} aria-hidden="true" /> Done
+                </>
+              ) : (
+                'Cancel'
+              )}
             </Button>
             <Button
               className="start-button"

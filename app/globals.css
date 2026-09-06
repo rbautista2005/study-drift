@@ -821,6 +821,34 @@ a:focus-visible {
   padding-top: 20px;
 }
 
+.import-secondary-button {
+  background: #fbfaf5 !important;
+  border: 1px solid #95a4a6 !important;
+  border-radius: 0 !important;
+  color: var(--ink) !important;
+  font-weight: 700;
+  min-height: 48px;
+  min-width: 112px;
+  padding-inline: 20px !important;
+}
+
+.import-secondary-button:hover {
+  background: #e9ece7 !important;
+}
+
+.import-secondary-button.is-complete {
+  background: #2f7d4a !important;
+  border-color: #1f5f36 !important;
+  box-shadow: 3px 3px 0 #183d27;
+  color: #fff !important;
+}
+
+.import-secondary-button.is-complete:hover {
+  background: #286c40 !important;
+  box-shadow: 1px 1px 0 #183d27;
+  transform: translate(2px, 2px);
+}
+
 .start-button {
   background: var(--orange) !important;
   border: 1px solid #d83b1d !important;
@@ -2781,6 +2809,9 @@ a:focus-visible {
     flex-direction: column-reverse;
   }
   .start-button {
+    width: 100%;
+  }
+  .import-secondary-button {
     width: 100%;
   }
   .garage-aside {
