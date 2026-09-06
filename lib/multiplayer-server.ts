@@ -1,8 +1,10 @@
 import { getDatabase } from '@/db';
 import {
+  freezeMultiplayerStudySet,
   getDefaultMultiplayerDeck,
-  getMultiplayerDeck,
   publicQuestion,
+  resolveRoomDeck,
+  serializeRoomDeck,
 } from '@/lib/multiplayer-deck.server';
 import { pointsForAnswer } from '@/lib/race-engine';
 import type {
@@ -176,10 +178,13 @@ async function roomView(room: RoomRow, meId: string): Promise<MultiplayerRoom> {
   const me = players.find((player) => player.id === meId);
   if (!me) throw new MultiplayerError('You are no longer in this lobby.', 401);
 
-  const deck = getMultiplayerDeck(room.deck_version);
-  if (!deck)
+  const frozenDeck = resolveRoomDeck(
+    room.question_ids_json,
+    room.deck_version,
+  );
+  if (!frozenDeck)
     throw new MultiplayerError('This race deck version is unavailable.', 409);
-  const questionIds = JSON.parse(room.question_ids_json) as string[];
+  const { deck, questionIds } = frozenDeck;
   const questionById = new Map(
     deck.questions.map((question) => [question.id, question]),
   );
@@ -210,6 +215,7 @@ async function roomView(room: RoomRow, meId: string): Promise<MultiplayerRoom> {
 
 export async function createRoom(
   nameValue: unknown,
+  studySetValue?: unknown,
 ): Promise<MultiplayerResponse> {
   const db = getDatabase();
   const displayName = cleanName(nameValue);
@@ -218,7 +224,16 @@ export async function createRoom(
   const playerId = crypto.randomUUID();
   const token = randomToken();
   const tokenHash = await hashToken(token);
-  const deck = getDefaultMultiplayerDeck();
+  let deck;
+  try {
+    deck = studySetValue
+      ? freezeMultiplayerStudySet(studySetValue)
+      : getDefaultMultiplayerDeck();
+  } catch (error) {
+    throw new MultiplayerError(
+      error instanceof Error ? error.message : 'Choose a valid study set.',
+    );
+  }
   const questionIds = deck.questions.map((question) => question.id);
 
   await db
@@ -249,7 +264,7 @@ export async function createRoom(
         code,
         deck.id,
         deck.version,
-        JSON.stringify(questionIds),
+        serializeRoomDeck(deck),
         questionIds.length,
         playerId,
         now,
@@ -446,10 +461,13 @@ export async function answerQuestion(
   if (!/^[0-9a-f-]{20,}$/i.test(requestId))
     throw new MultiplayerError('The answer request is missing an id.');
 
-  const deck = getMultiplayerDeck(room.deck_version);
-  if (!deck)
+  const frozenDeck = resolveRoomDeck(
+    room.question_ids_json,
+    room.deck_version,
+  );
+  if (!frozenDeck)
     throw new MultiplayerError('This race deck version is unavailable.', 409);
-  const questionIds = JSON.parse(room.question_ids_json) as string[];
+  const { deck, questionIds } = frozenDeck;
   const questionId = questionIds[player.answered_count % questionIds.length];
   const question = deck.questions.find(
     (candidate) => candidate.id === questionId,

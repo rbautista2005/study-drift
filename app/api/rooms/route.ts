@@ -30,13 +30,13 @@ function handleError(error: unknown) {
 export async function POST(request: Request) {
   try {
     const length = Number(request.headers.get('content-length') ?? 0);
-    if (length > 4096)
+    if (length > 128 * 1024)
       throw new MultiplayerError('That request is too large.', 413);
     const body = (await request.json()) as Record<string, unknown>;
 
     switch (body.action) {
       case 'create':
-        return json(await createRoom(body.displayName), 201);
+        return json(await createRoom(body.displayName, body.studySet), 201);
       case 'join':
         return json(await joinRoom(body.code, body.displayName), 201);
       case 'ready':

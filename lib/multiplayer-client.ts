@@ -3,6 +3,7 @@ import type {
   MultiplayerResponse,
   MultiplayerSession,
 } from '@/lib/multiplayer-types';
+import type { StudySet } from '@/lib/study-data';
 
 const endpoint = '/api/rooms';
 const sessionKey = 'study-drift-multiplayer-session';
@@ -35,8 +36,8 @@ function sessionBody(session: MultiplayerSession) {
   };
 }
 
-export function createMultiplayerRoom(displayName: string) {
-  return mutate({ action: 'create', displayName });
+export function createMultiplayerRoom(displayName: string, studySet: StudySet) {
+  return mutate({ action: 'create', displayName, studySet });
 }
 
 export function joinMultiplayerRoom(code: string, displayName: string) {
