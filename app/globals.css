@@ -1263,6 +1263,30 @@ a:focus-visible {
   justify-content: space-between;
 }
 
+.question-focus-field > span {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.question-focus-field > span small {
+  color: var(--muted-text);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.import-form .question-focus-field textarea {
+  min-height: 82px;
+}
+
+.question-focus-field > small {
+  color: var(--muted-text);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .notes-field > span small {
   color: var(--muted-text);
   font-family: var(--font-geist-mono), monospace;
