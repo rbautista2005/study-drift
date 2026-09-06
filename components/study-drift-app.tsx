@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -16,23 +16,23 @@ import {
   Users,
   X,
   Zap,
-} from 'lucide-react';
-import { MultiplayerGarage } from '@/components/multiplayer-garage';
-import { MultiplayerRoom } from '@/components/multiplayer-room';
-import { RaceTrack } from '@/components/race-track';
-import { StudyGuideImporter } from '@/components/study-guide-importer';
-import { Button } from '@/components/ui/button';
-import { useStudyDriftTools } from '@/hooks/use-study-drift-tools';
+} from "lucide-react";
+import { MultiplayerGarage } from "@/components/multiplayer-garage";
+import { MultiplayerRoom } from "@/components/multiplayer-room";
+import { RaceTrack } from "@/components/race-track";
+import { StudyGuideImporter } from "@/components/study-guide-importer";
+import { Button } from "@/components/ui/button";
+import { useStudyDriftTools } from "@/hooks/use-study-drift-tools";
 import {
   clearMultiplayerSession,
   leaveMultiplayerRoom,
   readMultiplayerRoom,
   restoreMultiplayerSession,
-} from '@/lib/multiplayer-client';
+} from "@/lib/multiplayer-client";
 import type {
   MultiplayerRoom as MultiplayerRoomState,
   MultiplayerSession,
-} from '@/lib/multiplayer-types';
+} from "@/lib/multiplayer-types";
 import {
   emptyPlayerProgress,
   finishSoloRace,
@@ -40,45 +40,45 @@ import {
   savePlayerProgress,
   type PlayerProgress,
   type RaceReward,
-} from '@/lib/player-progress';
+} from "@/lib/player-progress";
 import {
   buildLap,
   biologyDemo,
   type StudyQuestion,
   type StudySet,
-} from '@/lib/study-data';
+} from "@/lib/study-data";
 import {
   difficultyLabel,
   pointsForAnswer,
   speedForAnswer,
   topicSummary,
   type AnswerRecord,
-} from '@/lib/race-engine';
+} from "@/lib/race-engine";
 
-type Screen = 'garage' | 'race' | 'report' | 'multiplayer';
-type GarageMode = 'solo' | 'multiplayer';
+type Screen = "garage" | "race" | "report" | "multiplayer";
+type GarageMode = "solo" | "multiplayer";
 
-const choiceKeys = ['1', '2', '3', '4'];
+const choiceKeys = ["1", "2", "3", "4"];
 
 function learningResources(topic: string) {
   const query = encodeURIComponent(topic);
   return [
     {
-      label: 'Lesson search',
-      provider: 'Khan Academy',
+      label: "Lesson search",
+      provider: "Khan Academy",
       url: `https://www.khanacademy.org/search?page_search_query=${query}`,
     },
     {
-      label: 'Video search',
-      provider: 'YouTube',
+      label: "Video search",
+      provider: "YouTube",
       url: `https://www.youtube.com/results?search_query=${query}`,
     },
   ];
 }
 
 export function StudyDriftApp() {
-  const [screen, setScreen] = useState<Screen>('garage');
-  const [garageMode, setGarageMode] = useState<GarageMode>('solo');
+  const [screen, setScreen] = useState<Screen>("garage");
+  const [garageMode, setGarageMode] = useState<GarageMode>("solo");
   const [multiplayer, setMultiplayer] = useState<{
     session: MultiplayerSession;
     room: MultiplayerRoomState;
@@ -105,7 +105,7 @@ export function StudyDriftApp() {
   const correctCount = records.filter((record) => record.correct).length;
   const answeredCount = records.length;
   const progress =
-    screen === 'report'
+    screen === "report"
       ? 100
       : Math.min(96, (answeredCount / questions.length) * 100);
   const isAnswered = selectedIndex !== null;
@@ -123,7 +123,7 @@ export function StudyDriftApp() {
       setLastReward(null);
       raceCompletionRef.current = false;
       setLap(nextLap);
-      setScreen('race');
+      setScreen("race");
     },
     [studySet],
   );
@@ -149,8 +149,8 @@ export function StudyDriftApp() {
     }
     clearMultiplayerSession();
     setMultiplayer(null);
-    setGarageMode('multiplayer');
-    setScreen('garage');
+    setGarageMode("multiplayer");
+    setScreen("garage");
   }, [multiplayer]);
 
   const submitAnswer = useCallback(
@@ -202,7 +202,7 @@ export function StudyDriftApp() {
       setPlayerProgress(raceResult.progress);
       setLastReward(raceResult.reward);
       savePlayerProgress(raceResult.progress);
-      setScreen('report');
+      setScreen("report");
       return;
     }
 
@@ -223,18 +223,18 @@ export function StudyDriftApp() {
   }, [isAnswered]);
 
   useEffect(() => {
-    if (screen !== 'race') return;
+    if (screen !== "race") return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
-      if (event.key >= '1' && event.key <= '4' && selectedIndex === null) {
+      if (event.key >= "1" && event.key <= "4" && selectedIndex === null) {
         submitAnswer(Number(event.key) - 1);
       }
-      if (event.key === 'Enter' && selectedIndex !== null) advance();
+      if (event.key === "Enter" && selectedIndex !== null) advance();
     };
 
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [advance, screen, selectedIndex, submitAnswer]);
 
   useEffect(() => {
@@ -251,7 +251,7 @@ export function StudyDriftApp() {
       .then((response) => {
         if (cancelled) return;
         setMultiplayer({ session, room: response.room });
-        setScreen('multiplayer');
+        setScreen("multiplayer");
       })
       .catch(() => clearMultiplayerSession());
 
@@ -279,10 +279,10 @@ export function StudyDriftApp() {
         playerProgress={playerProgress}
         screen={screen}
         onHome={
-          screen === 'multiplayer' ? exitMultiplayer : () => setScreen('garage')
+          screen === "multiplayer" ? exitMultiplayer : () => setScreen("garage")
         }
       />
-      {screen === 'garage' && (
+      {screen === "garage" && (
         <Garage
           mode={garageMode}
           onMode={setGarageMode}
@@ -291,11 +291,11 @@ export function StudyDriftApp() {
           studySet={studySet}
           onMultiplayerConnected={(session, room) => {
             setMultiplayer({ session, room });
-            setScreen('multiplayer');
+            setScreen("multiplayer");
           }}
         />
       )}
-      {screen === 'race' && currentQuestion && (
+      {screen === "race" && currentQuestion && (
         <RaceScreen
           answeredCount={answeredCount}
           boost={boost}
@@ -312,7 +312,7 @@ export function StudyDriftApp() {
           nextButtonRef={nextButtonRef}
         />
       )}
-      {screen === 'report' && (
+      {screen === "report" && (
         <PitReport
           lap={lap}
           lastReward={lastReward}
@@ -320,10 +320,10 @@ export function StudyDriftApp() {
           records={records}
           score={score}
           onRetry={() => resetRace(lap + 1)}
-          onGarage={() => setScreen('garage')}
+          onGarage={() => setScreen("garage")}
         />
       )}
-      {screen === 'multiplayer' && multiplayer && (
+      {screen === "multiplayer" && multiplayer && (
         <MultiplayerRoom
           initialRoom={multiplayer.room}
           session={multiplayer.session}
@@ -357,17 +357,17 @@ function AppHeader({
         <span>Study Drift</span>
       </button>
       <div className="header-status" aria-label="Current location">
-        <span className={screen === 'garage' ? 'is-active' : ''}>Garage</span>
+        <span className={screen === "garage" ? "is-active" : ""}>Garage</span>
         <ChevronRight size={14} aria-hidden="true" />
         <span
           className={
-            screen === 'race' || screen === 'multiplayer' ? 'is-active' : ''
+            screen === "race" || screen === "multiplayer" ? "is-active" : ""
           }
         >
           Race
         </span>
         <ChevronRight size={14} aria-hidden="true" />
-        <span className={screen === 'report' ? 'is-active' : ''}>
+        <span className={screen === "report" ? "is-active" : ""}>
           Pit report
         </span>
       </div>
@@ -375,7 +375,7 @@ function AppHeader({
         className="header-chip"
         aria-label={`${playerProgress.longestStreak} best streak, ${playerProgress.tokens} tokens`}
       >
-        <Flame size={15} aria-hidden="true" /> Best streak{' '}
+        <Flame size={15} aria-hidden="true" /> Best streak{" "}
         <strong>{playerProgress.longestStreak}</strong>
         <span className="header-chip__divider" />
         <Coins size={15} aria-hidden="true" />
@@ -407,6 +407,7 @@ function Garage({
     studySet.questions.map((question) => question.conceptId),
   ).size;
   const imported = studySet.id !== biologyDemo.id;
+
   return (
     <div className="garage-layout">
       <section className="garage-main">
@@ -414,7 +415,7 @@ function Garage({
           <span /> Your next study session
         </div>
         <h1>
-          {mode === 'solo' ? (
+          {mode === "solo" ? (
             <>
               Learn the course.
               <br />
@@ -429,33 +430,33 @@ function Garage({
           )}
         </h1>
         <p className="lede">
-          {mode === 'solo'
-            ? 'Every correct answer creates momentum. Every lap shows exactly what to review next.'
-            : 'Create a room, share the code, and race friends through one fair, frozen study set.'}
+          {mode === "solo"
+            ? "Every correct answer creates momentum. Every lap shows exactly what to review next."
+            : "Create a room, share the code, and race friends through one fair, frozen study set."}
         </p>
 
         <div className="mode-switch" role="tablist" aria-label="Race mode">
           <button
-            className={mode === 'solo' ? 'is-selected' : ''}
+            className={mode === "solo" ? "is-selected" : ""}
             role="tab"
-            aria-selected={mode === 'solo'}
-            onClick={() => onMode('solo')}
+            aria-selected={mode === "solo"}
+            onClick={() => onMode("solo")}
             type="button"
           >
             <CircleGauge size={18} aria-hidden="true" /> Solo race
           </button>
           <button
-            className={mode === 'multiplayer' ? 'is-selected' : ''}
+            className={mode === "multiplayer" ? "is-selected" : ""}
             role="tab"
-            aria-selected={mode === 'multiplayer'}
-            onClick={() => onMode('multiplayer')}
+            aria-selected={mode === "multiplayer"}
+            onClick={() => onMode("multiplayer")}
             type="button"
           >
             <Users size={18} aria-hidden="true" /> Multiplayer <span>Live</span>
           </button>
         </div>
 
-        {mode === 'solo' ? (
+        {mode === "solo" ? (
           <article className="study-set-card">
             <div className="study-set-card__top">
               <div className="set-icon">
@@ -470,7 +471,7 @@ function Garage({
               </div>
               <span className="ready-badge">
                 <Check size={14} aria-hidden="true" />
-                {imported ? 'Imported' : 'Demo ready'}
+                {imported ? "Imported" : "Demo ready"}
               </span>
             </div>
             <div className="study-set-card__stats">
@@ -622,7 +623,7 @@ function RaceScreen(props: RaceScreenProps) {
         </div>
         <div>
           <span className="telemetry-label">Streak</span>
-          <strong className={streak > 1 ? 'hot' : ''}>{streak}×</strong>
+          <strong className={streak > 1 ? "hot" : ""}>{streak}×</strong>
         </div>
       </div>
 
@@ -636,8 +637,8 @@ function RaceScreen(props: RaceScreenProps) {
           <span
             className={`difficulty difficulty--${currentQuestion.difficulty}`}
           >
-            <Zap size={13} aria-hidden="true" />{' '}
-            {difficultyLabel[currentQuestion.difficulty]} ·{' '}
+            <Zap size={13} aria-hidden="true" />{" "}
+            {difficultyLabel[currentQuestion.difficulty]} ·{" "}
             {currentQuestion.difficulty}× boost
           </span>
           <span>{currentQuestion.topic}</span>
@@ -648,10 +649,10 @@ function RaceScreen(props: RaceScreenProps) {
           {currentQuestion.choices.map((choice, index) => {
             const isAnswer = index === currentQuestion.answerIndex;
             const wasSelected = index === selectedIndex;
-            let stateClass = '';
-            if (answered && isAnswer) stateClass = ' answer--correct';
+            let stateClass = "";
+            if (answered && isAnswer) stateClass = " answer--correct";
             if (answered && wasSelected && !isAnswer)
-              stateClass = ' answer--wrong';
+              stateClass = " answer--wrong";
 
             return (
               <button
@@ -684,7 +685,7 @@ function RaceScreen(props: RaceScreenProps) {
 
         {answered && (
           <div
-            className={`feedback${isCorrect ? ' feedback--correct' : ' feedback--wrong'}`}
+            className={`feedback${isCorrect ? " feedback--correct" : " feedback--wrong"}`}
             aria-live="polite"
           >
             <div>
@@ -707,8 +708,8 @@ function RaceScreen(props: RaceScreenProps) {
               onClick={onAdvance}
             >
               {questionIndex === questionCount - 1
-                ? 'See pit report'
-                : 'Next turn'}{' '}
+                ? "See pit report"
+                : "Next turn"}{" "}
               <ArrowRight size={16} aria-hidden="true" />
             </Button>
           </div>
@@ -748,7 +749,7 @@ function PitReport({
           <Trophy size={32} aria-hidden="true" />
         </div>
         <span className="eyebrow">
-          <span /> Pit report · Lap {String(lap + 1).padStart(2, '0')}
+          <span /> Pit report · Lap {String(lap + 1).padStart(2, "0")}
         </span>
         <h1>Lap complete.</h1>
         <p>
@@ -799,7 +800,7 @@ function PitReport({
           <span className="weakest-chip">
             {missedTopics.length > 0
               ? `Review: ${weakest?.topic}`
-              : 'All sectors clear'}
+              : "All sectors clear"}
           </span>
         </div>
         <div className="sector-list">
@@ -834,8 +835,8 @@ function PitReport({
               <h3 id="learning-resources-heading">Learning resources</h3>
             </div>
             <span>
-              {missedTopics.length}{' '}
-              {missedTopics.length === 1 ? 'concept' : 'concepts'}
+              {missedTopics.length}{" "}
+              {missedTopics.length === 1 ? "concept" : "concepts"}
             </span>
           </div>
           {missedTopics.length > 0 ? (
@@ -847,8 +848,8 @@ function PitReport({
                     <div className="learning-resource__topic">
                       <strong>{topic.topic}</strong>
                       <span>
-                        {missedCount}{' '}
-                        {missedCount === 1 ? 'question' : 'questions'} missed
+                        {missedCount}{" "}
+                        {missedCount === 1 ? "question" : "questions"} missed
                       </span>
                     </div>
                     <div className="learning-resource__links">
@@ -882,7 +883,7 @@ function PitReport({
           <div>
             <strong>Next best move</strong>
             <p>
-              Start with {weakest?.topic ?? 'your lowest-scoring topic'}. The
+              Start with {weakest?.topic ?? "your lowest-scoring topic"}. The
               recovery lap swaps in an unseen matched variant, so improvement
               means learning—not memorizing.
             </p>
