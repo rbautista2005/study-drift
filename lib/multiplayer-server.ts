@@ -7,6 +7,7 @@ import {
   serializeRoomDeck,
 } from '@/lib/multiplayer-deck.server';
 import { pointsForAnswer } from '@/lib/race-engine';
+import { shuffleAnswerChoices } from '@/lib/study-data';
 import type {
   AnswerOutcome,
   MultiplayerLeaveResponse,
@@ -234,6 +235,7 @@ export async function createRoom(
       error instanceof Error ? error.message : 'Choose a valid study set.',
     );
   }
+  deck = { ...deck, questions: shuffleAnswerChoices(deck.questions) };
   const questionIds = deck.questions.map((question) => question.id);
 
   await db
