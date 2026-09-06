@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { MultiplayerTrack } from '@/components/multiplayer-track';
 import { Button } from '@/components/ui/button';
+import type { CarSpec } from '@/lib/car-locker';
 import {
   answerMultiplayerQuestion,
   readMultiplayerRoom,
@@ -35,12 +36,14 @@ const choiceKeys = ['1', '2', '3', '4'];
 type MultiplayerRoomProps = {
   initialRoom: MultiplayerRoomState;
   session: MultiplayerSession;
+  selectedCar: CarSpec;
   onExit: () => void;
 };
 
 export function MultiplayerRoom({
   initialRoom,
   session,
+  selectedCar,
   onExit,
 }: MultiplayerRoomProps) {
   const [room, setRoom] = useState(initialRoom);
@@ -119,11 +122,18 @@ export function MultiplayerRoom({
   }
 
   if (room.status === 'finished')
-    return <MultiplayerResults room={room} onExit={onExit} />;
+    return (
+      <MultiplayerResults
+        room={room}
+        selectedCar={selectedCar}
+        onExit={onExit}
+      />
+    );
   return (
     <LiveMultiplayerRace
       error={error}
       room={room}
+      selectedCar={selectedCar}
       session={session}
       onRoom={setRoom}
     />
@@ -310,11 +320,13 @@ function Lobby({
 function LiveMultiplayerRace({
   error,
   room,
+  selectedCar,
   session,
   onRoom,
 }: {
   error: string;
   room: MultiplayerRoomState;
+  selectedCar: CarSpec;
   session: MultiplayerSession;
   onRoom: (room: MultiplayerRoomState) => void;
 }) {
@@ -434,7 +446,7 @@ function LiveMultiplayerRace({
           </strong>
         </div>
       </div>
-      <MultiplayerTrack room={room} />
+      <MultiplayerTrack room={room} selectedCar={selectedCar} />
 
       {waitingForOthers ? (
         <section className="question-panel waiting-panel">
@@ -528,9 +540,11 @@ function LiveMultiplayerRace({
 
 function MultiplayerResults({
   room,
+  selectedCar,
   onExit,
 }: {
   room: MultiplayerRoomState;
+  selectedCar: CarSpec;
   onExit: () => void;
 }) {
   const standings = useMemo(
@@ -552,7 +566,7 @@ function MultiplayerResults({
 
   return (
     <div className="multiplayer-results">
-      <MultiplayerTrack room={room} />
+      <MultiplayerTrack room={room} selectedCar={selectedCar} />
       <section className="multiplayer-results__hero">
         <div className="finish-emblem finish-emblem--passed">
           {didWin ? <Trophy size={32} /> : <Crown size={32} />}

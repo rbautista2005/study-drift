@@ -1,10 +1,12 @@
 import { Flag } from 'lucide-react';
 import { RaceCarModel } from '@/components/race-car-model';
+import type { CarSpec } from '@/lib/car-locker';
 
 type RaceTrackProps = {
   progress: number;
   speed: number;
   boost: boolean;
+  car: CarSpec;
   label?: string;
 };
 
@@ -12,6 +14,7 @@ export function RaceTrack({
   progress,
   speed,
   boost,
+  car,
   label = 'You',
 }: RaceTrackProps) {
   const safeProgress = Math.min(98, Math.max(6, progress));
@@ -53,7 +56,7 @@ export function RaceTrack({
         >
           <span className="race-car__name">{label}</span>
           <span className="race-car__model">
-            <RaceCarModel />
+            <RaceCarModel car={car} />
           </span>
         </div>
       </div>
