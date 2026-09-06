@@ -26,6 +26,7 @@ type RoomRow = {
   deck_version: string;
   question_ids_json: string;
   mastery_target: number;
+  question_time_limit_seconds: number | null;
   max_players: number;
   host_player_id: string;
   winner_player_id: string | null;
@@ -117,6 +118,13 @@ function cleanName(value: unknown) {
   return name;
 }
 
+function cleanQuestionTimeLimit(value: unknown) {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 5 || value > 30 || value % 5 !== 0)
+    throw new MultiplayerError('Choose a timer from 5 to 30 seconds.');
+  return value;
+}
+
 function cleanSession(value: Record<string, unknown>): SessionInput {
   const code = cleanCode(value.code);
   const playerId = typeof value.playerId === 'string' ? value.playerId : '';
@@ -204,6 +212,7 @@ async function roomView(room: RoomRow, meId: string): Promise<MultiplayerRoom> {
     questionIds,
     questions: questions.map((question) => publicQuestion(question!)),
     masteryTarget: room.mastery_target,
+    questionTimeLimitSeconds: room.question_time_limit_seconds,
     maxPlayers: room.max_players,
     winnerPlayerId: room.winner_player_id,
     version: room.version,
@@ -217,9 +226,11 @@ async function roomView(room: RoomRow, meId: string): Promise<MultiplayerRoom> {
 export async function createRoom(
   nameValue: unknown,
   studySetValue?: unknown,
+  questionTimeLimitValue?: unknown,
 ): Promise<MultiplayerResponse> {
   const db = getDatabase();
   const displayName = cleanName(nameValue);
+  const questionTimeLimitSeconds = cleanQuestionTimeLimit(questionTimeLimitValue);
   const now = Date.now();
   const roomId = crypto.randomUUID();
   const playerId = crypto.randomUUID();
@@ -258,8 +269,8 @@ export async function createRoom(
       .prepare(
         `INSERT INTO race_rooms (
           id, code, status, study_set_id, deck_version, question_ids_json,
-          mastery_target, max_players, host_player_id, version, created_at_ms, expires_at_ms
-        ) VALUES (?, ?, 'lobby', ?, ?, ?, ?, 4, ?, 1, ?, ?)`,
+          mastery_target, question_time_limit_seconds, max_players, host_player_id, version, created_at_ms, expires_at_ms
+        ) VALUES (?, ?, 'lobby', ?, ?, ?, ?, ?, 4, ?, 1, ?, ?)`,
       )
       .bind(
         roomId,
@@ -268,6 +279,7 @@ export async function createRoom(
         deck.version,
         serializeRoomDeck(deck),
         questionIds.length,
+        questionTimeLimitSeconds,
         playerId,
         now,
         now + 30 * 60 * 1000,
@@ -455,7 +467,7 @@ export async function answerQuestion(
     typeof values.requestId === 'string' ? values.requestId : '';
   if (
     !Number.isInteger(answerIndex) ||
-    Number(answerIndex) < 0 ||
+    Number(answerIndex) < -1 ||
     Number(answerIndex) > 3
   ) {
     throw new MultiplayerError('Choose one of the four answers.');

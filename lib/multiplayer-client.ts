@@ -36,8 +36,12 @@ function sessionBody(session: MultiplayerSession) {
   };
 }
 
-export function createMultiplayerRoom(displayName: string, studySet: StudySet) {
-  return mutate({ action: 'create', displayName, studySet });
+export function createMultiplayerRoom(
+  displayName: string,
+  studySet: StudySet,
+  questionTimeLimitSeconds: number | null,
+) {
+  return mutate({ action: 'create', displayName, studySet, questionTimeLimitSeconds });
 }
 
 export function joinMultiplayerRoom(code: string, displayName: string) {

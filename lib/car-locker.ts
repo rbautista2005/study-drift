@@ -3,9 +3,24 @@ export type CarId =
   | 'tide-runner'
   | 'solar-flare'
   | 'midnight-rs'
-  | 'aurora-gt';
+  | 'aurora-gt'
+  | 'trail-hauler'
+  | 'pop-quiz-express'
+  | 'neon-comet'
+  | 'campus-cruiser'
+  | 'toaster-turbo';
 
-export type CarVariant = 'sprint' | 'rally' | 'prototype' | 'classic' | 'hyper';
+export type CarVariant =
+  | 'sprint'
+  | 'rally'
+  | 'prototype'
+  | 'classic'
+  | 'hyper'
+  | 'pickup'
+  | 'bus'
+  | 'motorcycle'
+  | 'scooter'
+  | 'quirky';
 
 export type CarSpec = {
   id: CarId;
@@ -76,6 +91,61 @@ export const carCatalog: readonly CarSpec[] = [
     accent: '#62eadc',
     window: '#c8f5ef',
     variant: 'hyper',
+  },
+  {
+    id: 'trail-hauler',
+    name: 'Trail Hauler',
+    series: 'All-terrain truck',
+    description: 'A lifted pickup with knobby tires and enough torque for any study climb.',
+    cost: 90,
+    color: '#527a3e',
+    accent: '#f4c95d',
+    window: '#c8e2e1',
+    variant: 'pickup',
+  },
+  {
+    id: 'pop-quiz-express',
+    name: 'Pop Quiz Express',
+    series: 'Campus transit',
+    description: 'A yellow school bus that proves the whole class can make the podium.',
+    cost: 210,
+    color: '#f2b632',
+    accent: '#263f5b',
+    window: '#b7e3e7',
+    variant: 'bus',
+  },
+  {
+    id: 'neon-comet',
+    name: 'Neon Comet',
+    series: 'Sport motorcycle',
+    description: 'A tucked-in street bike with electric pink panels and a comet tail.',
+    cost: 360,
+    color: '#ed4d9b',
+    accent: '#bff7e8',
+    window: '#24364f',
+    variant: 'motorcycle',
+  },
+  {
+    id: 'campus-cruiser',
+    name: 'Campus Cruiser',
+    series: 'Classic scooter',
+    description: 'A mint commuter scooter with a book-basket silhouette and breezy style.',
+    cost: 460,
+    color: '#58bfae',
+    accent: '#fff3c4',
+    window: '#324d66',
+    variant: 'scooter',
+  },
+  {
+    id: 'toaster-turbo',
+    name: 'Toaster Turbo',
+    series: 'Secret breakfast build',
+    description: 'A chrome toaster on wheels. Two slices of toast provide questionable downforce.',
+    cost: 700,
+    color: '#bfc7c9',
+    accent: '#ff8d4a',
+    window: '#5b7087',
+    variant: 'quirky',
   },
 ] as const;
 

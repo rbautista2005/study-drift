@@ -19,6 +19,8 @@ import {
   Zap,
 } from "lucide-react";
 import { CarLocker } from "@/components/car-locker";
+import { QuestionTimer } from "@/components/question-timer";
+import { RaceTimerSetting } from "@/components/race-timer-setting";
 import { MultiplayerGarage } from "@/components/multiplayer-garage";
 import { MultiplayerRoom } from "@/components/multiplayer-room";
 import { RaceCarModel } from "@/components/race-car-model";
@@ -163,6 +165,7 @@ function learningResources(topic: string) {
 export function StudyDriftApp() {
   const [screen, setScreen] = useState<Screen>("garage");
   const [garageMode, setGarageMode] = useState<GarageMode>("solo");
+  const [questionTimeLimitSeconds, setQuestionTimeLimitSeconds] = useState<number | null>(null);
   const [multiplayer, setMultiplayer] = useState<{
     session: MultiplayerSession;
     room: MultiplayerRoomState;
@@ -450,6 +453,8 @@ export function StudyDriftApp() {
           mode={garageMode}
           onMode={setGarageMode}
           onStart={() => resetRace(0)}
+          questionTimeLimitSeconds={questionTimeLimitSeconds}
+          onQuestionTimeLimitChange={setQuestionTimeLimitSeconds}
           onImport={importSet}
           onSelectSet={selectBuiltInSet}
           onUnlockGuide={unlockGuideReview}
@@ -487,6 +492,7 @@ export function StudyDriftApp() {
           speed={speed}
           streak={streak}
           nextButtonRef={nextButtonRef}
+          questionTimeLimitSeconds={questionTimeLimitSeconds}
         />
       )}
       {screen === "report" && (
@@ -581,6 +587,8 @@ function Garage({
   mode,
   onMode,
   onStart,
+  questionTimeLimitSeconds,
+  onQuestionTimeLimitChange,
   onImport,
   onSelectSet,
   onUnlockGuide,
@@ -593,6 +601,8 @@ function Garage({
   mode: GarageMode;
   onMode: (mode: GarageMode) => void;
   onStart: () => void;
+  questionTimeLimitSeconds: number | null;
+  onQuestionTimeLimitChange: (seconds: number | null) => void;
   onImport: (studySet: StudySet) => void;
   onSelectSet: (setId: string) => void;
   onUnlockGuide: (guideId: string, cost: number) => boolean;
@@ -638,6 +648,7 @@ function Garage({
         <div className="eyebrow">
           <span /> Your next study session
         </div>
+
         <h1>
           {mode === "solo" ? (
             <>
@@ -733,6 +744,7 @@ function Garage({
                 </select>
               </label>
             </div>
+            <RaceTimerSetting value={questionTimeLimitSeconds} onChange={onQuestionTimeLimitChange} />
             <div className="study-set-card__stats">
               <div>
                 <strong>{lapQuestionCount}</strong>
@@ -794,7 +806,10 @@ function Garage({
           <MultiplayerGarage
             onConnected={onMultiplayerConnected}
             onImport={onImport}
+            onSelectSet={onSelectSet}
             studySet={studySet}
+            questionTimeLimitSeconds={questionTimeLimitSeconds}
+            onQuestionTimeLimitChange={onQuestionTimeLimitChange}
           />
         )}
       </section>
@@ -924,6 +939,7 @@ type RaceScreenProps = {
   speed: number;
   streak: number;
   nextButtonRef: React.RefObject<HTMLButtonElement | null>;
+  questionTimeLimitSeconds: number | null;
 };
 
 function RaceScreen(props: RaceScreenProps) {
@@ -942,6 +958,7 @@ function RaceScreen(props: RaceScreenProps) {
     speed,
     streak,
     nextButtonRef,
+    questionTimeLimitSeconds,
   } = props;
   const answered = selectedIndex !== null;
   const isCorrect = answered && selectedIndex === currentQuestion.answerIndex;
@@ -984,6 +1001,7 @@ function RaceScreen(props: RaceScreenProps) {
             {currentQuestion.difficulty}× boost
           </span>
           <span>{currentQuestion.topic}</span>
+          {questionTimeLimitSeconds !== null && <QuestionTimer key={questionIndex} onExpire={() => onAnswer(-1)} paused={answered} seconds={questionTimeLimitSeconds} />}
         </div>
         <h1 id="question-heading">{currentQuestion.prompt}</h1>
         <fieldset className="answer-grid">
@@ -1038,7 +1056,7 @@ function RaceScreen(props: RaceScreenProps) {
                   </>
                 ) : (
                   <>
-                    <RotateCcw size={18} aria-hidden="true" /> Pit check
+                  <RotateCcw size={18} aria-hidden="true" /> {selectedIndex === -1 ? 'Time ran out' : 'Pit check'}
                   </>
                 )}
               </span>

@@ -30,11 +30,11 @@ export function CarLocker({
           <ArrowLeft size={15} aria-hidden="true" /> Back to garage
         </button>
         <span className="eyebrow">
-          <span /> Cosmetic car collection
+          <span /> Cosmetic vehicle collection
         </span>
         <h1>Build your grid.</h1>
         <p>
-          Redeem drift tokens for new body styles and paint. Every car is
+          Redeem drift tokens for new body styles and paint. Every ride is
           cosmetic, so your answers—not your ride—still decide the race.
         </p>
 
@@ -60,7 +60,7 @@ export function CarLocker({
         <div className="locker-catalog__header">
           <div>
             <span className="telemetry-label">Paddock inventory</span>
-            <h2 id="locker-catalog-heading">Choose your race car</h2>
+            <h2 id="locker-catalog-heading">Choose your race ride</h2>
           </div>
           <span>{carCatalog.length} builds</span>
         </div>
@@ -117,7 +117,7 @@ export function CarLocker({
                       </Button>
                     ) : unlocked ? (
                       <Button className="locker-action" onClick={() => onSelect(car.id)}>
-                        Equip car
+                        Equip ride
                       </Button>
                     ) : (
                       <Button
