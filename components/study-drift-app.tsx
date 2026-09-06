@@ -71,7 +71,7 @@ function learningResources(topic: string) {
     {
       label: 'Video search',
       provider: 'YouTube',
-      url: `https://www.youtube.com/search?query=${query}`,
+      url: `https://www.youtube.com/results?search_query=${query}`,
     },
   ];
 }
