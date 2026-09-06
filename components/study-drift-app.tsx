@@ -69,9 +69,9 @@ function learningResources(topic: string) {
       url: `https://www.khanacademy.org/search?page_search_query=${query}`,
     },
     {
-      label: 'Open textbook search',
-      provider: 'OpenStax',
-      url: `https://openstax.org/search?query=${query}`,
+      label: 'Video search',
+      provider: 'Crash Course',
+      url: `https://www.youtube.com/@crashcourse/search?query=${query}`,
     },
   ];
 }
