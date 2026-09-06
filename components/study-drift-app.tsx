@@ -70,8 +70,8 @@ function learningResources(topic: string) {
     },
     {
       label: 'Video search',
-      provider: 'Crash Course',
-      url: `https://www.youtube.com/@crashcourse/search?query=${query}`,
+      provider: 'YouTube',
+      url: `https://www.youtube.com/search?query=${query}`,
     },
   ];
 }
