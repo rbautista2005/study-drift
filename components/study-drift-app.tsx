@@ -407,10 +407,6 @@ function Garage({
     studySet.questions.map((question) => question.conceptId),
   ).size;
   const imported = studySet.id !== biologyDemo.id;
-  const trackTopics = Array.from(
-    new Set(studySet.questions.map((question) => question.topic)),
-  ).slice(0, 3);
-
   return (
     <div className="garage-layout">
       <section className="garage-main">
@@ -515,17 +511,40 @@ function Garage({
           data-course={`COURSE / ${studySet.course}`}
           aria-hidden="true"
         >
-          <div className="track-preview__route">
-            <span className="track-preview__dot track-preview__dot--start" />
-            <span className="track-preview__dot track-preview__dot--one" />
-            <span className="track-preview__dot track-preview__dot--two" />
-            <span className="track-preview__dot track-preview__dot--finish" />
+          <div className="track-preview__scene">
+            <div className="track-preview__signal">
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="track-preview__speed-lines">
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="track-preview__road">
+              <span className="track-preview__lane track-preview__lane--one" />
+              <span className="track-preview__lane track-preview__lane--two" />
+              <span className="track-preview__start-grid" />
+              <div className="track-preview__car-runner">
+                <div className="track-preview__car">
+                  <span className="track-preview__spoiler" />
+                  <span className="track-preview__car-body" />
+                  <span className="track-preview__car-window" />
+                  <span className="track-preview__wheel track-preview__wheel--rear" />
+                  <span className="track-preview__wheel track-preview__wheel--front" />
+                </div>
+              </div>
+              <span className="track-preview__finish-line" />
+            </div>
+            <div className="track-preview__finish-post">
+              <span>Finish</span>
+            </div>
           </div>
           <div className="track-preview__legend">
-            <span>Start</span>
-            {trackTopics.map((topic) => (
-              <span key={topic}>{topic}</span>
-            ))}
+            <span>Start grid</span>
+            <strong>{conceptCount} correct answers</strong>
+            <span>Finish</span>
           </div>
         </div>
         <div className="briefing-card">
