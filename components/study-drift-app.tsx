@@ -48,7 +48,6 @@ import {
 } from '@/lib/study-data';
 import {
   difficultyLabel,
-  masteryTarget,
   pointsForAnswer,
   speedForAnswer,
   topicSummary,
@@ -86,11 +85,10 @@ export function StudyDriftApp() {
   const raceCompletionRef = useRef(false);
 
   const currentQuestion = questions[questionIndex];
-  const target = masteryTarget(questions.length);
   const correctCount = records.filter((record) => record.correct).length;
   const answeredCount = records.length;
   const progress =
-    screen === 'report' && correctCount >= target
+    screen === 'report'
       ? 100
       : Math.min(96, (answeredCount / questions.length) * 100);
   const isAnswered = selectedIndex !== null;
@@ -182,7 +180,6 @@ export function StudyDriftApp() {
           (longest, record) => Math.max(longest, record.streakAfter),
           0,
         ),
-        passed: correctCount >= target,
         score,
       });
       setPlayerProgress(raceResult.progress);
@@ -202,7 +199,6 @@ export function StudyDriftApp() {
     records,
     score,
     selectedIndex,
-    target,
   ]);
 
   useEffect(() => {
@@ -306,7 +302,6 @@ export function StudyDriftApp() {
           playerProgress={playerProgress}
           records={records}
           score={score}
-          target={target}
           onRetry={() => resetRace(lap + 1)}
           onGarage={() => setScreen('garage')}
         />
@@ -471,8 +466,8 @@ function Garage({
                 <span>concepts</span>
               </div>
               <div>
-                <strong>80%</strong>
-                <span>finish line</span>
+                <strong>{conceptCount}</strong>
+                <span>questions per lap</span>
               </div>
               <div>
                 <strong>2×</strong>
@@ -522,8 +517,8 @@ function Garage({
           </span>
           <h2>{conceptCount} concepts. One clean lap.</h2>
           <p>
-            Harder questions trigger a stronger boost, but accuracy gets you
-            across the line.
+            Harder questions trigger a stronger boost. Your final accuracy shows
+            which sector to practice next.
           </p>
           <ul>
             <li>
@@ -695,7 +690,6 @@ function PitReport({
   playerProgress,
   records,
   score,
-  target,
   onRetry,
   onGarage,
 }: {
@@ -704,36 +698,27 @@ function PitReport({
   playerProgress: PlayerProgress;
   records: AnswerRecord[];
   score: number;
-  target: number;
   onRetry: () => void;
   onGarage: () => void;
 }) {
   const correct = records.filter((record) => record.correct).length;
   const accuracy = Math.round((correct / records.length) * 100);
-  const passed = correct >= target;
   const topics = useMemo(() => topicSummary(records), [records]);
   const weakest = topics[0];
 
   return (
     <div className="report-layout">
       <section className="report-hero">
-        <div
-          className={`finish-emblem${passed ? ' finish-emblem--passed' : ''}`}
-        >
-          {passed ? (
-            <Trophy size={32} aria-hidden="true" />
-          ) : (
-            <CircleGauge size={32} aria-hidden="true" />
-          )}
+        <div className="finish-emblem finish-emblem--passed">
+          <Trophy size={32} aria-hidden="true" />
         </div>
         <span className="eyebrow">
           <span /> Pit report · Lap {String(lap + 1).padStart(2, '0')}
         </span>
-        <h1>{passed ? 'Finish line crossed.' : 'One more lap.'}</h1>
+        <h1>Lap complete.</h1>
         <p>
-          {passed
-            ? `You cleared the ${target}-answer mastery line. Now tighten the sector that cost you the most time.`
-            : `You landed ${correct} correct answers. The next lap keeps the same concepts and difficulty mix with new wording.`}
+          You answered {correct} of {records.length} correctly. Use the sector
+          breakdown to decide what to practice next.
         </p>
         <div className="report-scoreboard">
           <div>
@@ -756,19 +741,13 @@ function PitReport({
             <Coins size={20} aria-hidden="true" />
             <div>
               <strong>+{lastReward.tokensEarned} drift tokens</strong>
-              <span>
-                {lastReward.masteryBonus > 0
-                  ? `${lastReward.masteryBonus} token mastery bonus · `
-                  : ''}
-                {playerProgress.tokens} banked
-              </span>
+              <span>{playerProgress.tokens} banked</span>
             </div>
           </div>
         ) : null}
         <div className="report-actions">
           <Button className="start-button" size="lg" onClick={onRetry}>
-            {passed ? 'Practice weakest sector' : 'Run recovery lap'}{' '}
-            <RotateCcw size={17} aria-hidden="true" />
+            Practice weakest sector <RotateCcw size={17} aria-hidden="true" />
           </Button>
           <Button variant="outline" size="lg" onClick={onGarage}>
             Back to garage

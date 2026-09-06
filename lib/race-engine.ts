@@ -30,10 +30,6 @@ export function speedForAnswer(difficulty: Difficulty, nextStreak: number) {
   return Math.round(62 + difficulty * 18 + Math.min(nextStreak, 5) * 4);
 }
 
-export function masteryTarget(questionCount: number) {
-  return Math.max(1, Math.ceil(questionCount * 0.8));
-}
-
 export function topicSummary(records: AnswerRecord[]) {
   const summary = new Map<string, { correct: number; total: number }>();
 

@@ -63,8 +63,9 @@ export function MultiplayerGarage({ onConnected }: MultiplayerGarageProps) {
         <h2>Line up with your crew.</h2>
         <p>
           Everyone races the same concepts, difficulty mix, and question order.
-          Correct answers move your car. The first racer to master 4 concepts
-          takes the flag, while everyone else keeps racing to the line.
+          Correct answers move your car. The first racer to reach the full
+          correct-answer target takes the flag, while everyone else keeps racing
+          to the line.
         </p>
         <div className="fairness-strip">
           <ShieldCheck size={18} aria-hidden="true" />

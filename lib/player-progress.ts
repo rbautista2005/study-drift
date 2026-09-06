@@ -8,7 +8,6 @@ export type PlayerProgress = {
 
 export type RaceReward = {
   tokensEarned: number;
-  masteryBonus: number;
 };
 
 const storageKey = 'study-drift-player-progress-v1';
@@ -57,14 +56,12 @@ export function finishSoloRace(
   result: {
     correctCount: number;
     longestStreak: number;
-    passed: boolean;
     score: number;
   },
 ): { progress: PlayerProgress; reward: RaceReward } {
-  const masteryBonus = result.passed ? 25 : 0;
-  const tokensEarned = result.correctCount * 15 + masteryBonus;
+  const tokensEarned = result.correctCount * 15;
   return {
-    reward: { tokensEarned, masteryBonus },
+    reward: { tokensEarned },
     progress: {
       version: 1,
       tokens: progress.tokens + tokensEarned,

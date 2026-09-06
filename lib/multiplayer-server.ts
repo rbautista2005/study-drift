@@ -4,7 +4,7 @@ import {
   getMultiplayerDeck,
   publicQuestion,
 } from '@/lib/multiplayer-deck.server';
-import { masteryTarget, pointsForAnswer } from '@/lib/race-engine';
+import { pointsForAnswer } from '@/lib/race-engine';
 import type {
   AnswerOutcome,
   MultiplayerLeaveResponse,
@@ -250,7 +250,7 @@ export async function createRoom(
         deck.id,
         deck.version,
         JSON.stringify(questionIds),
-        masteryTarget(questionIds.length),
+        questionIds.length,
         playerId,
         now,
         now + 30 * 60 * 1000,
