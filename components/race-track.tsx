@@ -1,4 +1,5 @@
-import { CarFront, Flag } from 'lucide-react';
+import { Flag } from 'lucide-react';
+import { RaceCarModel } from '@/components/race-car-model';
 
 type RaceTrackProps = {
   progress: number;
@@ -13,7 +14,7 @@ export function RaceTrack({
   boost,
   label = 'You',
 }: RaceTrackProps) {
-  const safeProgress = Math.min(100, Math.max(2, progress));
+  const safeProgress = Math.min(98, Math.max(6, progress));
 
   return (
     <section
@@ -38,18 +39,21 @@ export function RaceTrack({
           <small>km/h</small>
         </div>
       </div>
-      <div className="race-track__lane" aria-hidden="true">
+      <div
+        className={`race-track__lane${boost ? ' is-boosting' : ''}`}
+        aria-hidden="true"
+      >
         <div className="race-track__grid" />
         <div className="race-track__finish">
           <Flag size={19} strokeWidth={2.25} />
         </div>
         <div
           className={`race-car${boost ? ' race-car--boost' : ''}`}
-          style={{ left: `calc(${safeProgress}% - 22px)` }}
+          style={{ left: `calc(${safeProgress}% - 38px)` }}
         >
           <span className="race-car__name">{label}</span>
-          <span className="race-car__body">
-            <CarFront size={23} strokeWidth={2.4} />
+          <span className="race-car__model">
+            <RaceCarModel />
           </span>
         </div>
       </div>

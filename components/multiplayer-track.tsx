@@ -1,4 +1,5 @@
-import { CarFront, Check, Flag } from 'lucide-react';
+import { Check, Flag } from 'lucide-react';
+import { RaceCarModel } from '@/components/race-car-model';
 import type { MultiplayerRoom } from '@/lib/multiplayer-types';
 
 function ordinal(position: number) {
@@ -8,7 +9,13 @@ function ordinal(position: number) {
   return `${position}th`;
 }
 
-export function MultiplayerTrack({ room }: { room: MultiplayerRoom }) {
+export function MultiplayerTrack({
+  boostedPlayerId,
+  room,
+}: {
+  boostedPlayerId?: string;
+  room: MultiplayerRoom;
+}) {
   const finishOrder = [...room.players]
     .filter((player) => player.finishedAtMs !== null)
     .sort(
@@ -53,6 +60,7 @@ export function MultiplayerTrack({ room }: { room: MultiplayerRoom }) {
             : Math.max(2, progress * 0.92);
           const winner = room.winnerPlayerId === player.id;
           const finishPosition = finishPositionById.get(player.id);
+          const isBoosting = boostedPlayerId === player.id;
 
           return (
             <div
@@ -63,7 +71,10 @@ export function MultiplayerTrack({ room }: { room: MultiplayerRoom }) {
                 {player.displayName}
                 {player.id === room.me.id ? ' · you' : ''}
               </span>
-              <div className="multiplayer-lane__road" aria-hidden="true">
+              <div
+                className={`multiplayer-lane__road${isBoosting ? ' is-boosting' : ''}`}
+                aria-hidden="true"
+              >
                 {Array.from({ length: room.masteryTarget - 1 }, (_, marker) => (
                   <span
                     className="multiplayer-lane__checkpoint"
@@ -78,9 +89,9 @@ export function MultiplayerTrack({ room }: { room: MultiplayerRoom }) {
                 </div>
                 <div
                   className={`multiplayer-car multiplayer-car--${(index % 4) + 1}${player.finished ? ' is-finished' : ''}${winner ? ' is-winner' : ''}`}
-                  style={{ left: `calc(${trackPosition}% - 16px)` }}
+                  style={{ left: `calc(${trackPosition}% - 27px)` }}
                 >
-                  <CarFront size={18} strokeWidth={2.5} />
+                  <RaceCarModel number={index + 1} />
                 </div>
               </div>
               <strong className="multiplayer-lane__score">

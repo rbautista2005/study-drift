@@ -1286,7 +1286,26 @@ a:focus-visible {
 }
 
 .race-track__lane {
-  background: #385266;
+  --road-divider-distance: -168px;
+  --road-flow-speed: 1.2s;
+  --road-surface-distance: -136px;
+  animation: road-surface-flow var(--road-flow-speed) linear infinite;
+  background-color: #385266;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.025) 0,
+      rgba(255, 255, 255, 0.025) 2px,
+      transparent 2px,
+      transparent 32px
+    ),
+    linear-gradient(180deg, #425e70 0%, #30495c 48%, #263f53 100%);
+  background-position:
+    0 0,
+    0 0;
+  background-size:
+    34px 100%,
+    100% 100%;
   border-bottom: 2px solid #6d8390;
   border-top: 2px solid #6d8390;
   height: 78px;
@@ -1295,12 +1314,24 @@ a:focus-visible {
 }
 
 .race-track__lane::before {
-  border-top: 2px dashed #80939e;
+  animation: road-divider-flow var(--road-flow-speed) linear infinite;
+  background: repeating-linear-gradient(
+    90deg,
+    #aebdc4 0,
+    #aebdc4 22px,
+    transparent 22px,
+    transparent 42px
+  );
   content: '';
+  height: 2px;
   left: 0;
   position: absolute;
   right: 0;
   top: 37px;
+}
+
+.race-track__lane.is-boosting {
+  --road-flow-speed: 280ms;
 }
 
 .race-track__grid {
@@ -1353,23 +1384,20 @@ a:focus-visible {
   text-transform: uppercase;
 }
 
-.race-car__body {
-  align-items: center;
-  background: var(--orange);
-  border: 2px solid #ff9b83;
-  display: flex;
-  height: 42px;
-  justify-content: center;
+.race-car__model {
+  --race-car-color: var(--orange);
+  display: block;
+  height: 34px;
   position: relative;
-  width: 40px;
+  width: 78px;
 }
 
-.race-car--boost .race-car__body {
+.race-car--boost .race-car__model {
   animation: boost 520ms ease-out;
 }
 
-.race-car--boost .race-car__body::before,
-.race-car--boost .race-car__body::after {
+.race-car--boost .race-car__model::before,
+.race-car--boost .race-car__model::after {
   background: var(--yellow);
   content: '';
   height: 2px;
@@ -1378,12 +1406,128 @@ a:focus-visible {
   width: 30px;
 }
 
-.race-car--boost .race-car__body::before {
+.race-car--boost .race-car__model::before {
   top: 11px;
 }
-.race-car--boost .race-car__body::after {
+.race-car--boost .race-car__model::after {
   bottom: 10px;
   width: 20px;
+}
+
+.race-car-model {
+  display: block;
+  height: 100%;
+  overflow: visible;
+  width: 100%;
+}
+
+.race-car-model__shadow {
+  fill: rgba(4, 18, 28, 0.42);
+}
+
+.race-car-model__body,
+.race-car-model__spoiler {
+  fill: var(--race-car-color, var(--orange));
+  stroke: #102a38;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.race-car-model__highlight {
+  fill: color-mix(
+    in srgb,
+    var(--race-car-color, var(--orange)) 72%,
+    white
+  );
+  opacity: 0.78;
+}
+
+.race-car-model__window {
+  fill: #9dd2df;
+  stroke: #102a38;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.race-car-model__split {
+  fill: none;
+  stroke: #315363;
+  stroke-width: 1.5;
+}
+
+.race-car-model__intake {
+  fill: #173342;
+  opacity: 0.88;
+}
+
+.race-car-model__number {
+  fill: #fff9df;
+  stroke: #102a38;
+  stroke-width: 1;
+}
+
+.race-car-model__number-text {
+  fill: #102a38;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 8px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+.race-car-model__light {
+  fill: var(--yellow);
+}
+
+.race-car-model__bumper {
+  fill: #102a38;
+}
+
+.race-car-model__wheel > circle:first-child {
+  fill: #0a151c;
+  stroke: #8ea5ae;
+  stroke-width: 1.2;
+}
+
+.race-car-model__wheel > circle:nth-child(2) {
+  fill: #b8c8cd;
+  stroke: #102a38;
+  stroke-width: 1;
+}
+
+.race-car-model__wheel path {
+  fill: none;
+  stroke: #405d69;
+  stroke-width: 1;
+}
+
+.race-car-model__wheel {
+  animation: race-wheel-spin 600ms linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.is-boosting .race-car-model__wheel {
+  animation-duration: 180ms;
+}
+
+@keyframes road-surface-flow {
+  to {
+    background-position:
+      var(--road-surface-distance) 0,
+      0 0;
+  }
+}
+
+@keyframes road-divider-flow {
+  to {
+    background-position: var(--road-divider-distance) 0;
+  }
+}
+
+@keyframes race-wheel-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes boost {
@@ -2522,7 +2666,26 @@ a:focus-visible {
 }
 
 .multiplayer-lane__road {
-  background: #385266;
+  --road-divider-distance: -108px;
+  --road-flow-speed: 1.2s;
+  --road-surface-distance: -100px;
+  animation: road-surface-flow var(--road-flow-speed) linear infinite;
+  background-color: #385266;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.025) 0,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px,
+      transparent 24px
+    ),
+    linear-gradient(180deg, #425e70, #2c4558);
+  background-position:
+    0 0,
+    0 0;
+  background-size:
+    25px 100%,
+    100% 100%;
   border-bottom: 1px solid #718691;
   border-top: 1px solid #718691;
   height: 39px;
@@ -2530,12 +2693,24 @@ a:focus-visible {
 }
 
 .multiplayer-lane__road::before {
-  border-top: 1px dashed #7b8e98;
+  animation: road-divider-flow var(--road-flow-speed) linear infinite;
+  background: repeating-linear-gradient(
+    90deg,
+    #8fa2aa 0,
+    #8fa2aa 14px,
+    transparent 14px,
+    transparent 27px
+  );
   content: '';
+  height: 1px;
   left: 0;
   position: absolute;
   right: 0;
   top: 18px;
+}
+
+.multiplayer-lane__road.is-boosting {
+  --road-flow-speed: 280ms;
 }
 
 .multiplayer-lane__checkpoint {
@@ -2554,13 +2729,13 @@ a:focus-visible {
 
 .multiplayer-car {
   align-items: center;
-  bottom: 4px;
+  bottom: 5px;
   display: flex;
-  height: 29px;
+  height: 25px;
   justify-content: center;
   position: absolute;
   transition: left 480ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  width: 29px;
+  width: 56px;
   z-index: 2;
 }
 
@@ -2569,32 +2744,38 @@ a:focus-visible {
 }
 
 .multiplayer-car--1 {
-  background: var(--orange);
+  --race-car-color: var(--orange);
 }
 
 .multiplayer-car--2 {
-  background: var(--teal);
-  color: #063e39;
+  --race-car-color: var(--teal);
 }
 
 .multiplayer-car--3 {
-  background: var(--yellow);
-  color: #4d3800;
+  --race-car-color: var(--yellow);
 }
 
 .multiplayer-car--4 {
-  background: #9fb7dc;
-  color: #16385e;
+  --race-car-color: #9fb7dc;
 }
 
 .multiplayer-car.is-winner {
-  box-shadow: 0 0 0 3px var(--yellow);
+  filter: drop-shadow(0 0 4px var(--yellow));
 }
 
 @keyframes finish-line-pulse {
   50% {
-    box-shadow: 0 0 0 6px rgba(255, 207, 61, 0.35);
+    filter: drop-shadow(0 0 7px rgba(255, 207, 61, 0.7));
     transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .race-track__lane,
+  .race-track__lane::before,
+  .multiplayer-lane__road,
+  .multiplayer-lane__road::before {
+    animation: none;
   }
 }
 
