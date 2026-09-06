@@ -22,6 +22,13 @@
       "when": 1788721856579,
       "tag": "0002_windy_star_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788724884638,
+      "tag": "0003_unknown_viper",
+      "breakpoints": true
     }
   ]
 }

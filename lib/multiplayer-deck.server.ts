@@ -173,11 +173,7 @@ export function freezeMultiplayerStudySet(value: unknown): ServerDeck {
     studySet.questions.length < MIN_MULTIPLAYER_CONCEPTS ||
     studySet.questions.length > MAX_STUDY_SET_QUESTIONS
   ) {
-<<<<<<< HEAD
-    throw new Error('A multiplayer study set needs 4–48 clear concepts.');
-=======
     throw new Error('A multiplayer study set needs 4–48 usable questions.');
->>>>>>> main
   }
 
   const questionsByConcept = new Map<
@@ -191,20 +187,12 @@ export function freezeMultiplayerStudySet(value: unknown): ServerDeck {
       questionsByConcept.set(frozen.conceptId, frozen);
   });
 
-<<<<<<< HEAD
-  if (questionsByConcept.size < 4 || questionsByConcept.size > 48)
-    throw new Error('A multiplayer study set needs 4–48 clear concepts.');
-  const questions = Array.from(questionsByConcept.values(), ({ question }) =>
-    question,
-  );
-=======
   if (questionsByConcept.size < MIN_MULTIPLAYER_CONCEPTS)
     throw new Error('A multiplayer study set needs at least 4 clear concepts.');
   const questions = Array.from(
     questionsByConcept.values(),
     ({ question }) => question,
   ).slice(0, MAX_MULTIPLAYER_CONCEPTS);
->>>>>>> main
   if (new Set(questions.map((question) => question.id)).size !== questions.length)
     throw new Error('Every multiplayer question needs a unique id.');
 
