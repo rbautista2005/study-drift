@@ -272,6 +272,7 @@ export function StudyGuideImporter({
                 accept={fileAccept}
                 className="file-input"
                 disabled={isGenerating}
+                hidden
                 onChange={(event) => chooseFile(event.target.files?.[0])}
                 ref={fileInputRef}
                 type="file"
