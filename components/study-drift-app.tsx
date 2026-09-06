@@ -17,8 +17,10 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import { CarLocker } from "@/components/car-locker";
 import { MultiplayerGarage } from "@/components/multiplayer-garage";
 import { MultiplayerRoom } from "@/components/multiplayer-room";
+import { RaceCarModel } from "@/components/race-car-model";
 import { RaceTrack } from "@/components/race-track";
 import { StudyGuideImporter } from "@/components/study-guide-importer";
 import { Button } from "@/components/ui/button";
@@ -33,11 +35,14 @@ import type {
   MultiplayerRoom as MultiplayerRoomState,
   MultiplayerSession,
 } from "@/lib/multiplayer-types";
+import { getCar, type CarId, type CarSpec } from "@/lib/car-locker";
 import {
   emptyPlayerProgress,
   finishSoloRace,
   loadPlayerProgress,
+  redeemCar,
   savePlayerProgress,
+  selectCar,
   type PlayerProgress,
   type RaceReward,
 } from "@/lib/player-progress";
@@ -55,7 +60,7 @@ import {
   type AnswerRecord,
 } from "@/lib/race-engine";
 
-type Screen = "garage" | "race" | "report" | "multiplayer";
+type Screen = "garage" | "locker" | "race" | "report" | "multiplayer";
 type GarageMode = "solo" | "multiplayer";
 
 const choiceKeys = ["1", "2", "3", "4"];
@@ -109,6 +114,28 @@ export function StudyDriftApp() {
       : Math.min(96, (answeredCount / questions.length) * 100);
   const isAnswered = selectedIndex !== null;
   const boost = streak > 0;
+  const selectedCar = getCar(playerProgress.selectedCarId);
+
+  const redeemLockerCar = useCallback(
+    (car: CarSpec) => {
+      const nextProgress = redeemCar(playerProgress, car.id, car.cost);
+      if (!nextProgress) return false;
+      setPlayerProgress(nextProgress);
+      savePlayerProgress(nextProgress);
+      return true;
+    },
+    [playerProgress],
+  );
+
+  const equipCar = useCallback(
+    (carId: CarId) => {
+      const nextProgress = selectCar(playerProgress, carId);
+      if (nextProgress === playerProgress) return;
+      setPlayerProgress(nextProgress);
+      savePlayerProgress(nextProgress);
+    },
+    [playerProgress],
+  );
 
   const resetRace = useCallback(
     (nextLap: number) => {
@@ -274,6 +301,7 @@ export function StudyDriftApp() {
       <AppHeader
         playerProgress={playerProgress}
         screen={screen}
+        onLocker={() => setScreen("locker")}
         onHome={
           screen === "multiplayer" ? exitMultiplayer : () => setScreen("garage")
         }
@@ -284,6 +312,8 @@ export function StudyDriftApp() {
           onMode={setGarageMode}
           onStart={() => resetRace(0)}
           onImport={importSet}
+          onLocker={() => setScreen("locker")}
+          selectedCar={selectedCar}
           studySet={studySet}
           onMultiplayerConnected={(session, room) => {
             setMultiplayer({ session, room });
@@ -291,10 +321,19 @@ export function StudyDriftApp() {
           }}
         />
       )}
+      {screen === "locker" && (
+        <CarLocker
+          playerProgress={playerProgress}
+          onBack={() => setScreen("garage")}
+          onRedeem={redeemLockerCar}
+          onSelect={equipCar}
+        />
+      )}
       {screen === "race" && currentQuestion && (
         <RaceScreen
           answeredCount={answeredCount}
           boost={boost}
+          car={selectedCar}
           currentQuestion={currentQuestion}
           onAdvance={advance}
           onAnswer={submitAnswer}
@@ -317,11 +356,13 @@ export function StudyDriftApp() {
           score={score}
           onRetry={() => resetRace(lap + 1)}
           onGarage={() => setScreen("garage")}
+          onLocker={() => setScreen("locker")}
         />
       )}
       {screen === "multiplayer" && multiplayer && (
         <MultiplayerRoom
           initialRoom={multiplayer.room}
+          selectedCar={selectedCar}
           session={multiplayer.session}
           onExit={exitMultiplayer}
         />
@@ -333,10 +374,12 @@ export function StudyDriftApp() {
 function AppHeader({
   playerProgress,
   screen,
+  onLocker,
   onHome,
 }: {
   playerProgress: PlayerProgress;
   screen: Screen;
+  onLocker: () => void;
   onHome: () => void;
 }) {
   return (
@@ -352,23 +395,34 @@ function AppHeader({
         </span>
         <span>Study Drift</span>
       </button>
-      <div className="header-status" aria-label="Current location">
-        <span className={screen === "garage" ? "is-active" : ""}>Garage</span>
-        <ChevronRight size={14} aria-hidden="true" />
-        <span
-          className={
-            screen === "race" || screen === "multiplayer" ? "is-active" : ""
-          }
-        >
-          Race
-        </span>
-        <ChevronRight size={14} aria-hidden="true" />
-        <span className={screen === "report" ? "is-active" : ""}>
-          Pit report
-        </span>
-      </div>
-      <div
-        className="header-chip"
+      {screen === "locker" ? (
+        <div className="header-status" aria-label="Current location">
+          <span>Garage</span>
+          <ChevronRight size={14} aria-hidden="true" />
+          <span className="is-active">Car locker</span>
+        </div>
+      ) : (
+        <div className="header-status" aria-label="Current location">
+          <span className={screen === "garage" ? "is-active" : ""}>Garage</span>
+          <ChevronRight size={14} aria-hidden="true" />
+          <span
+            className={
+              screen === "race" || screen === "multiplayer" ? "is-active" : ""
+            }
+          >
+            Race
+          </span>
+          <ChevronRight size={14} aria-hidden="true" />
+          <span className={screen === "report" ? "is-active" : ""}>
+            Pit report
+          </span>
+        </div>
+      )}
+      <button
+        className="header-chip header-chip--button"
+        disabled={screen === "race" || screen === "multiplayer"}
+        onClick={onLocker}
+        type="button"
         aria-label={`${playerProgress.longestStreak} best streak, ${playerProgress.tokens} tokens`}
       >
         <Flame size={15} aria-hidden="true" /> Best streak{" "}
@@ -376,7 +430,7 @@ function AppHeader({
         <span className="header-chip__divider" />
         <Coins size={15} aria-hidden="true" />
         <strong>{playerProgress.tokens}</strong>
-      </div>
+      </button>
     </header>
   );
 }
@@ -386,17 +440,21 @@ function Garage({
   onMode,
   onStart,
   onImport,
+  onLocker,
   onMultiplayerConnected,
+  selectedCar,
   studySet,
 }: {
   mode: GarageMode;
   onMode: (mode: GarageMode) => void;
   onStart: () => void;
   onImport: (studySet: StudySet) => void;
+  onLocker: () => void;
   onMultiplayerConnected: (
     session: MultiplayerSession,
     room: MultiplayerRoomState,
   ) => void;
+  selectedCar: CarSpec;
   studySet: StudySet;
 }) {
   const conceptCount = new Set(
@@ -430,6 +488,17 @@ function Garage({
             ? "Every correct answer creates momentum. Every lap shows exactly what to review next."
             : "Create a room, share the code, and race friends through one fair, frozen study set."}
         </p>
+
+        <button className="garage-locker-entry" onClick={onLocker} type="button">
+          <span className="garage-locker-entry__car" aria-hidden="true">
+            <RaceCarModel car={selectedCar} />
+          </span>
+          <span>
+            <small>Current ride</small>
+            <strong>{selectedCar.name}</strong>
+          </span>
+          <span>Open car locker <ArrowRight size={15} aria-hidden="true" /></span>
+        </button>
 
         <div className="mode-switch" role="tablist" aria-label="Race mode">
           <button
@@ -524,11 +593,7 @@ function Garage({
               <span className="track-preview__start-grid" />
               <div className="track-preview__car-runner">
                 <div className="track-preview__car">
-                  <span className="track-preview__spoiler" />
-                  <span className="track-preview__car-body" />
-                  <span className="track-preview__car-window" />
-                  <span className="track-preview__wheel track-preview__wheel--rear" />
-                  <span className="track-preview__wheel track-preview__wheel--front" />
+                  <RaceCarModel car={selectedCar} />
                 </div>
               </div>
               <span className="track-preview__finish-line" />
@@ -568,6 +633,7 @@ function Garage({
 type RaceScreenProps = {
   answeredCount: number;
   boost: boolean;
+  car: CarSpec;
   currentQuestion: StudyQuestion;
   onAdvance: () => void;
   onAnswer: (index: number) => void;
@@ -585,6 +651,7 @@ function RaceScreen(props: RaceScreenProps) {
   const {
     answeredCount,
     boost,
+    car,
     currentQuestion,
     onAdvance,
     onAnswer,
@@ -623,7 +690,7 @@ function RaceScreen(props: RaceScreenProps) {
         </div>
       </div>
 
-      <RaceTrack progress={progress} speed={speed} boost={boost} />
+      <RaceTrack progress={progress} speed={speed} boost={boost} car={car} />
 
       <section className="question-panel" aria-labelledby="question-heading">
         <div className="question-panel__meta">
@@ -723,6 +790,7 @@ function PitReport({
   score,
   onRetry,
   onGarage,
+  onLocker,
 }: {
   lap: number;
   lastReward: RaceReward | null;
@@ -731,6 +799,7 @@ function PitReport({
   score: number;
   onRetry: () => void;
   onGarage: () => void;
+  onLocker: () => void;
 }) {
   const correct = records.filter((record) => record.correct).length;
   const accuracy = Math.round((correct / records.length) * 100);
@@ -783,6 +852,9 @@ function PitReport({
           </Button>
           <Button variant="outline" size="lg" onClick={onGarage}>
             Back to garage
+          </Button>
+          <Button variant="outline" size="lg" onClick={onLocker}>
+            Car locker <Coins size={17} aria-hidden="true" />
           </Button>
         </div>
       </section>

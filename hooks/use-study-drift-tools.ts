@@ -27,7 +27,7 @@ declare global {
 }
 
 type StudyDriftToolState = {
-  screen: 'garage' | 'race' | 'report' | 'multiplayer';
+  screen: 'garage' | 'locker' | 'race' | 'report' | 'multiplayer';
   currentQuestion: StudyQuestion | undefined;
   questionIndex: number;
   questionCount: number;

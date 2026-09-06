@@ -198,6 +198,21 @@ a:focus-visible {
   text-transform: uppercase;
 }
 
+.header-chip--button {
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.header-chip--button:hover:not(:disabled) {
+  background: #fff5d9;
+  border-color: #d9b95c;
+}
+
+.header-chip--button:disabled {
+  cursor: default;
+}
+
 .header-chip svg {
   color: var(--orange);
 }
@@ -247,7 +262,8 @@ a:focus-visible {
 }
 
 .garage-main > h1,
-.report-hero > h1 {
+.report-hero > h1,
+.locker-intro > h1 {
   font-size: clamp(46px, 6.2vw, 86px);
   font-weight: 780;
   letter-spacing: -0.068em;
@@ -262,6 +278,371 @@ a:focus-visible {
   line-height: 1.5;
   margin: 0;
   max-width: 600px;
+}
+
+.garage-locker-entry {
+  align-items: center;
+  background: transparent;
+  border: 1px solid #aebbbc;
+  color: var(--ink);
+  cursor: pointer;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 84px 1fr auto;
+  margin: 24px 0 4px;
+  max-width: 570px;
+  padding: 10px 14px 10px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.garage-locker-entry:hover {
+  background: var(--white);
+  border-color: var(--steel);
+}
+
+.garage-locker-entry__car {
+  align-items: center;
+  background: var(--ink);
+  display: flex;
+  height: 44px;
+  padding: 5px;
+}
+
+.garage-locker-entry > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+}
+
+.garage-locker-entry small {
+  color: var(--muted-text);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.garage-locker-entry strong {
+  font-size: 14px;
+}
+
+.garage-locker-entry > span:last-child {
+  align-items: center;
+  color: var(--steel);
+  display: flex;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 7px;
+}
+
+.locker-layout {
+  display: grid;
+  gap: clamp(42px, 6vw, 82px);
+  grid-template-columns: minmax(280px, 0.72fr) minmax(520px, 1.28fr);
+  margin: 0 auto;
+  max-width: 1380px;
+  min-height: calc(100svh - 72px);
+  padding: clamp(48px, 7vh, 78px) clamp(20px, 5vw, 72px) 64px;
+  position: relative;
+}
+
+.locker-intro {
+  align-self: start;
+  position: sticky;
+  top: 112px;
+}
+
+.locker-intro .text-button {
+  margin-bottom: 34px;
+}
+
+.locker-intro > h1 {
+  font-size: clamp(50px, 6vw, 78px);
+  margin: 20px 0 18px;
+}
+
+.locker-intro > p {
+  color: var(--steel);
+  font-size: 16px;
+  line-height: 1.65;
+  margin: 0;
+  max-width: 500px;
+}
+
+.locker-balance {
+  align-items: center;
+  background: var(--ink);
+  color: var(--white);
+  display: grid;
+  gap: 13px;
+  grid-template-columns: auto 1fr auto;
+  margin-top: 30px;
+  padding: 17px 18px;
+}
+
+.locker-balance__coin {
+  align-items: center;
+  background: var(--yellow);
+  color: #5d4300;
+  display: flex;
+  height: 44px;
+  justify-content: center;
+  transform: rotate(-3deg);
+  width: 44px;
+}
+
+.locker-balance > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.locker-balance span,
+.locker-balance small {
+  color: #a9bbc3;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.locker-balance strong {
+  color: var(--yellow);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 26px;
+}
+
+.locker-balance small {
+  align-self: end;
+  font-family: var(--font-geist-mono), monospace;
+  padding-bottom: 5px;
+}
+
+.equipped-build {
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 4px;
+  margin-top: 18px;
+  padding: 13px 2px 16px;
+}
+
+.equipped-build strong {
+  font-size: 17px;
+}
+
+.equipped-build > span:last-child {
+  color: var(--muted-text);
+  font-size: 12px;
+}
+
+.locker-catalog {
+  background: var(--white);
+  border: 1px solid #b8c3c4;
+  box-shadow: 11px 11px 0 #d7dcd8;
+}
+
+.locker-catalog__header {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  padding: 23px 26px;
+}
+
+.locker-catalog__header h2 {
+  font-size: 24px;
+  letter-spacing: -0.04em;
+  margin: 4px 0 0;
+}
+
+.locker-catalog__header > span {
+  background: var(--ink);
+  color: var(--white);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  padding: 7px 9px;
+  text-transform: uppercase;
+}
+
+.car-bays {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.car-bay {
+  display: grid;
+  grid-template-rows: 142px 1fr;
+  min-width: 0;
+}
+
+.car-bay:nth-child(even) {
+  border-left: 1px solid var(--line);
+}
+
+.car-bay:nth-child(n + 3) {
+  border-top: 1px solid var(--line);
+}
+
+.car-bay:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.car-bay.is-equipped {
+  box-shadow: inset 0 0 0 3px var(--orange);
+  position: relative;
+  z-index: 1;
+}
+
+.car-bay__preview {
+  background: #dce5e4;
+  overflow: hidden;
+  position: relative;
+}
+
+.car-bay__preview::before {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.12) 0,
+    rgba(255, 255, 255, 0.12) 2px,
+    transparent 2px,
+    transparent 24px
+  );
+  content: '';
+  inset: 0;
+  position: absolute;
+}
+
+.car-bay__number {
+  color: rgba(11, 36, 54, 0.22);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 48px;
+  font-weight: 800;
+  left: 13px;
+  line-height: 1;
+  position: absolute;
+  top: 11px;
+}
+
+.car-bay__road {
+  background: var(--ink);
+  border-bottom: 2px solid #6e8791;
+  border-top: 2px solid #6e8791;
+  bottom: 20px;
+  height: 62px;
+  left: 0;
+  padding: 7px 24px;
+  position: absolute;
+  right: 0;
+}
+
+.car-bay__road::before {
+  border-top: 2px dashed rgba(255, 255, 255, 0.42);
+  content: '';
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 29px;
+}
+
+.car-bay__road .race-car-model {
+  height: 46px;
+  margin: -1px auto 0;
+  position: relative;
+  width: 112px;
+  z-index: 1;
+}
+
+.car-bay:not(.is-unlocked) .car-bay__preview {
+  filter: grayscale(0.72);
+}
+
+.car-bay:not(.is-unlocked) .race-car-model {
+  opacity: 0.68;
+}
+
+.car-bay__details {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 19px 20px;
+}
+
+.car-bay__heading {
+  align-items: start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.car-bay__heading > div > span {
+  color: var(--muted-text);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.car-bay__heading h3 {
+  font-size: 19px;
+  letter-spacing: -0.035em;
+  margin: 2px 0 0;
+}
+
+.car-status {
+  background: #e3e8e7;
+  color: var(--steel);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 9px;
+  font-weight: 750;
+  gap: 4px;
+  padding: 5px 6px;
+  text-transform: uppercase;
+}
+
+.car-status--equipped {
+  background: #dff3ee;
+  color: #176a60;
+}
+
+.car-status--locked {
+  background: #ece9df;
+  color: #6b6658;
+}
+
+.car-bay__details > p {
+  color: var(--muted-text);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 12px 0 20px;
+}
+
+.car-bay__action {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.car-price {
+  align-items: center;
+  color: #765900;
+  display: inline-flex;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  font-weight: 750;
+  gap: 5px;
+}
+
+.locker-action {
+  background: var(--ink) !important;
+  border-radius: 0 !important;
+  color: white !important;
+  min-height: 40px;
+}
+
+.locker-action:disabled {
+  background: #e2e6e4 !important;
+  color: #718087 !important;
+  opacity: 1 !important;
+}
+
+.locker-action--equipped:disabled {
+  background: #dff3ee !important;
+  color: #176a60 !important;
 }
 
 .mode-switch {
@@ -1434,16 +1815,12 @@ a:focus-visible {
 }
 
 .race-car-model__highlight {
-  fill: color-mix(
-    in srgb,
-    var(--race-car-color, var(--orange)) 72%,
-    white
-  );
+  fill: var(--race-car-accent, var(--yellow));
   opacity: 0.78;
 }
 
 .race-car-model__window {
-  fill: #9dd2df;
+  fill: var(--race-car-window, #9dd2df);
   stroke: #102a38;
   stroke-linejoin: round;
   stroke-width: 1.5;
@@ -1475,7 +1852,7 @@ a:focus-visible {
 }
 
 .race-car-model__light {
-  fill: var(--yellow);
+  fill: var(--race-car-accent, var(--yellow));
 }
 
 .race-car-model__bumper {
@@ -2888,6 +3265,7 @@ a:focus-visible {
     display: none;
   }
   .garage-layout,
+  .locker-layout,
   .report-layout,
   .lobby-layout,
   .multiplayer-results {
@@ -2897,6 +3275,10 @@ a:focus-visible {
     margin: 0 auto;
     max-width: 520px;
     width: 100%;
+  }
+  .locker-intro {
+    max-width: 680px;
+    position: static;
   }
   .report-hero {
     max-width: 680px;
@@ -2929,6 +3311,40 @@ a:focus-visible {
   .garage-layout {
     min-height: calc(100svh - 62px);
     padding: 38px 16px 42px;
+  }
+  .locker-layout {
+    min-height: calc(100svh - 62px);
+    padding: 38px 16px 48px;
+  }
+  .locker-intro .text-button {
+    margin-bottom: 28px;
+  }
+  .locker-intro > h1 {
+    font-size: clamp(46px, 14vw, 62px);
+  }
+  .car-bays {
+    grid-template-columns: 1fr;
+  }
+  .car-bay:nth-child(even) {
+    border-left: 0;
+  }
+  .car-bay:nth-child(n + 2) {
+    border-top: 1px solid var(--line);
+  }
+  .car-bay:last-child:nth-child(odd) {
+    grid-column: auto;
+  }
+  .locker-catalog__header,
+  .car-bay__details {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .garage-locker-entry {
+    grid-template-columns: 72px 1fr;
+  }
+  .garage-locker-entry > span:last-child {
+    grid-column: 1 / -1;
+    justify-self: end;
   }
   .garage-main > h1 {
     font-size: clamp(43px, 14vw, 62px);

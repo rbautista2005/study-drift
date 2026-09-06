@@ -1,5 +1,6 @@
 import { Check, Flag } from 'lucide-react';
 import { RaceCarModel } from '@/components/race-car-model';
+import { carCatalog, type CarSpec } from '@/lib/car-locker';
 import type { MultiplayerRoom } from '@/lib/multiplayer-types';
 
 function ordinal(position: number) {
@@ -9,7 +10,13 @@ function ordinal(position: number) {
   return `${position}th`;
 }
 
-export function MultiplayerTrack({ room }: { room: MultiplayerRoom }) {
+export function MultiplayerTrack({
+  room,
+  selectedCar,
+}: {
+  room: MultiplayerRoom;
+  selectedCar: CarSpec;
+}) {
   const finishOrder = [...room.players]
     .filter((player) => player.finishedAtMs !== null)
     .sort(
@@ -55,6 +62,10 @@ export function MultiplayerTrack({ room }: { room: MultiplayerRoom }) {
           const winner = room.winnerPlayerId === player.id;
           const finishPosition = finishPositionById.get(player.id);
           const isBoosting = player.streak > 0;
+          const displayCar =
+            player.id === room.me.id
+              ? selectedCar
+              : carCatalog[index % carCatalog.length];
 
           return (
             <div
@@ -85,7 +96,7 @@ export function MultiplayerTrack({ room }: { room: MultiplayerRoom }) {
                   className={`multiplayer-car multiplayer-car--${(index % 4) + 1}${player.finished ? ' is-finished' : ''}${winner ? ' is-winner' : ''}`}
                   style={{ left: `calc(${trackPosition}% - 27px)` }}
                 >
-                  <RaceCarModel number={index + 1} />
+                  <RaceCarModel car={displayCar} number={index + 1} />
                 </div>
               </div>
               <strong className="multiplayer-lane__score">
