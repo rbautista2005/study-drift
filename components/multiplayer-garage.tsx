@@ -21,7 +21,7 @@ import type {
   MultiplayerRoom,
   MultiplayerSession,
 } from '@/lib/multiplayer-types';
-import type { StudySet } from '@/lib/study-data';
+import { buildLap, type StudySet } from '@/lib/study-data';
 
 type MultiplayerGarageProps = {
   onConnected: (session: MultiplayerSession, room: MultiplayerRoom) => void;
@@ -39,9 +39,7 @@ export function MultiplayerGarage({
   const [code, setCode] = useState('');
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
-  const questionCount = new Set(
-    studySet.questions.map((question) => question.conceptId),
-  ).size;
+  const questionCount = buildLap(studySet, 0).length;
 
   const submit = async (event: { preventDefault(): void }) => {
     event.preventDefault();

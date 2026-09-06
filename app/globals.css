@@ -762,10 +762,6 @@ a:focus-visible {
 .study-set-card__stats div + div {
   border-left: 1px solid var(--line);
 }
-.study-set-card__stats strong {
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 18px;
-}
 .study-set-card__stats span {
   color: var(--muted-text);
   font-size: 11px;
@@ -773,19 +769,27 @@ a:focus-visible {
   text-transform: uppercase;
 }
 
+.study-set-card__stats strong {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 18px;
+}
+
 .study-set-card__action {
-  align-items: center;
-  display: flex;
-  gap: 20px;
-  justify-content: space-between;
+  display: block;
   padding: 17px 18px 17px 24px;
+}
+
+.study-set-card__picker {
+  border-bottom: 1px solid var(--line);
+  padding: 16px 24px;
 }
 
 .study-set-card__action p {
   align-items: center;
   display: flex;
   gap: 8px;
-  max-width: 380px;
+  max-width: none;
+  margin: 0;
 }
 
 .study-set-card__action svg {
@@ -794,11 +798,209 @@ a:focus-visible {
 }
 
 .study-set-card__buttons {
-  align-items: center;
-  display: flex;
-  flex: 0 0 auto;
+  display: grid;
   gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
 }
+
+.study-set-card__buttons > * {
+  width: 100%;
+}
+
+.study-set-card__buttons .review-guide-button {
+  grid-column: 1 / -1;
+}
+
+.guide-review__panel {
+  background: #f3f1e8 !important;
+  border: 2px solid #10283b;
+  border-radius: 0 !important;
+  box-shadow: none;
+  max-height: 92vh;
+  max-width: min(1180px, calc(100vw - 8vw));
+  opacity: 1 !important;
+  overflow: hidden;
+  padding: 0 !important;
+  width: 100%;
+}
+
+.guide-review__header {
+  align-items: start;
+  background: #10283b;
+  color: #f7f4ed;
+  display: flex;
+  justify-content: space-between;
+  padding: 24px 28px 20px;
+}
+
+.guide-review__header h2 {
+  font-size: 32px;
+  margin: 4px 0;
+}
+
+.guide-review__header p {
+  color: #cbd9d7;
+  font-size: 13px;
+  margin: 0;
+}
+
+.guide-review__header .telemetry-label {
+  color: #f18d72;
+}
+
+.guide-review__header button {
+  background: var(--orange) !important;
+  border-color: var(--orange) !important;
+  color: #fff !important;
+}
+
+.guide-review__header button:hover {
+  background: #e64c29 !important;
+  border-color: #e64c29 !important;
+}
+
+.review-guide-button {
+  background: #10283b !important;
+  border: 1px solid #10283b !important;
+  border-radius: 0 !important;
+  color: #f7f4ed !important;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px !important;
+  letter-spacing: 0.025em;
+  min-height: 48px;
+  text-transform: uppercase;
+}
+
+.review-guide-button:hover {
+  background: #29475e !important;
+  border-color: #29475e !important;
+}
+
+.guide-review__summary {
+  background: #e8ece8;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 700;
+  gap: 0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.guide-review__summary span {
+  padding: 11px 18px;
+}
+
+.guide-review__summary span + span {
+  border-left: 1px solid var(--line);
+}
+
+.guide-review__questions {
+  display: grid;
+  align-content: start;
+  background: #e8ece8;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  height: min(720px, calc(92vh - 160px));
+  overflow: auto;
+  padding: 18px 22px 28px;
+}
+
+.guide-review__question {
+  background: var(--white);
+  border: 1px solid #c2cccc;
+  box-shadow: 3px 3px 0 #d1d8d5;
+  padding: 17px;
+}
+
+.guide-review__meta {
+  color: var(--muted-text);
+  display: flex;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 700;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+.guide-review__meta span:first-child {
+  color: var(--orange);
+}
+
+.guide-review__question h3 {
+  font-size: 17px;
+  line-height: 1.25;
+  margin: 10px 0 12px;
+}
+
+.guide-review__question ol {
+  display: grid;
+  gap: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.guide-review__question li {
+  border-left: 2px solid transparent;
+  color: var(--muted-text);
+  font-size: 12px;
+  padding: 5px 7px;
+}
+
+.guide-review__question li.is-correct {
+  align-items: center;
+  background: #dcf4ef;
+  color: #10685f;
+  display: flex;
+  font-weight: 700;
+  justify-content: space-between;
+  border-left-color: var(--teal);
+}
+
+.guide-review__explanation {
+  border-top: 1px solid var(--line);
+  color: var(--muted-text);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 14px 0 0;
+  padding-top: 10px;
+}
+
+.study-set-picker select {
+  appearance: auto;
+  background: #10283b;
+  border: 1px solid #10283b;
+  border-radius: 0;
+  color: #f7f4ed;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 5px 0 0;
+  min-height: 34px;
+  min-width: 0;
+  outline-offset: 3px;
+  padding: 0 8px;
+  width: 100%;
+}
+
+.study-set-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.study-set-picker > span {
+  color: var(--muted-text);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: normal;
+  text-transform: uppercase;
+}
+
 
 .import-trigger {
   background: transparent !important;
@@ -2129,7 +2331,7 @@ a:focus-visible {
 }
 
 .report-layout {
-  align-items: center;
+  align-items: start;
   display: grid;
   gap: clamp(44px, 7vw, 100px);
   grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
@@ -2141,6 +2343,7 @@ a:focus-visible {
 }
 
 .report-hero {
+  align-self: start;
   max-width: 570px;
 }
 .finish-emblem {
@@ -2240,6 +2443,16 @@ a:focus-visible {
 .report-actions button {
   border-radius: 0;
   min-height: 48px;
+}
+
+.report-actions kbd {
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  line-height: 1;
+  margin-left: 3px;
+  padding: 3px 4px;
 }
 
 .sector-report {
@@ -3372,13 +3585,10 @@ a:focus-visible {
     font-size: 9px;
   }
   .study-set-card__action {
-    align-items: stretch;
-    flex-direction: column;
     padding: 18px;
   }
   .study-set-card__buttons {
-    align-items: stretch;
-    flex-direction: column-reverse;
+    grid-template-columns: 1fr;
   }
   .import-trigger {
     width: 100%;
@@ -3502,6 +3712,26 @@ a:focus-visible {
   .report-layout {
     min-height: calc(100svh - 62px);
     padding: 42px 16px;
+  }
+  .guide-review__panel {
+    max-width: calc(100vw - 24px);
+  }
+  .guide-review__header {
+    padding: 18px;
+  }
+  .guide-review__header h2 {
+    font-size: 25px;
+  }
+  .guide-review__summary {
+    overflow-x: auto;
+  }
+  .guide-review__summary span {
+    flex: 0 0 auto;
+    padding: 10px 12px;
+  }
+  .guide-review__questions {
+    grid-template-columns: 1fr;
+    padding: 14px;
   }
   .report-scoreboard strong {
     font-size: 18px;

@@ -10,6 +10,7 @@ import {
   Coins,
   ExternalLink,
   Flame,
+  Lock,
   RotateCcw,
   Sparkles,
   Trophy,
@@ -23,6 +24,7 @@ import { MultiplayerRoom } from "@/components/multiplayer-room";
 import { RaceCarModel } from "@/components/race-car-model";
 import { RaceTrack } from "@/components/race-track";
 import { StudyGuideImporter } from "@/components/study-guide-importer";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useStudyDriftTools } from "@/hooks/use-study-drift-tools";
 import {
@@ -41,6 +43,7 @@ import {
   finishSoloRace,
   loadPlayerProgress,
   redeemCar,
+  redeemGuideReview,
   savePlayerProgress,
   selectCar,
   type PlayerProgress,
@@ -48,7 +51,10 @@ import {
 } from "@/lib/player-progress";
 import {
   buildLap,
-  biologyDemo,
+  guideReviewCost,
+  shuffleAnswerChoices,
+  studySetGroups,
+  studySets,
   type StudyQuestion,
   type StudySet,
 } from "@/lib/study-data";
@@ -64,6 +70,79 @@ type Screen = "garage" | "locker" | "race" | "report" | "multiplayer";
 type GarageMode = "solo" | "multiplayer";
 
 const choiceKeys = ["1", "2", "3", "4"];
+
+function sampleRaceQuestions(
+  set: StudySet,
+  questionCount: number,
+  previousIds: Set<string>,
+  requiredTopic?: string,
+) {
+  const pool = [...set.questions];
+
+  for (let index = pool.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [pool[index], pool[swapIndex]] = [pool[swapIndex], pool[index]];
+  }
+
+  const selected = pool.slice(0, questionCount);
+  const replaceQuestion = (
+    candidates: StudyQuestion[],
+    preserveTopic?: string,
+    replacePreviousOnly = false,
+  ) => {
+    const available = candidates.filter(
+      (question) => !selected.some((item) => item.id === question.id),
+    );
+    if (available.length === 0) return;
+    const replaceableIndexes = selected
+      .map((question, index) => ({ question, index }))
+      .filter(
+        (item) =>
+          item.question.topic !== preserveTopic &&
+          (!replacePreviousOnly || previousIds.has(item.question.id)),
+      )
+      .map((item) => item.index);
+    const indexes = replaceableIndexes.length > 0
+      ? replaceableIndexes
+      : selected.map((_, index) => index);
+    const replaceIndex = indexes[Math.floor(Math.random() * indexes.length)];
+    selected[replaceIndex] =
+      available[Math.floor(Math.random() * available.length)];
+  };
+
+  if (
+    requiredTopic &&
+    !selected.some((question) => question.topic === requiredTopic)
+  ) {
+    replaceQuestion(
+      set.questions.filter((question) => question.topic === requiredTopic),
+    );
+  }
+
+  const freshCandidates = set.questions.filter(
+    (question) => !previousIds.has(question.id),
+  );
+  const requiredFreshCount = Math.min(
+    freshCandidates.length,
+    1 + Math.floor(Math.random() * 3),
+  );
+  while (
+    selected.filter((question) => !previousIds.has(question.id)).length <
+    requiredFreshCount
+  ) {
+    const freshCountBefore = selected.filter(
+      (question) => !previousIds.has(question.id),
+    ).length;
+    replaceQuestion(freshCandidates, requiredTopic, true);
+    if (
+      selected.filter((question) => !previousIds.has(question.id)).length ===
+      freshCountBefore
+    )
+      break;
+  }
+
+  return shuffleAnswerChoices(selected);
+}
 
 function learningResources(topic: string) {
   const query = encodeURIComponent(topic);
@@ -89,9 +168,9 @@ export function StudyDriftApp() {
     room: MultiplayerRoomState;
   } | null>(null);
   const [lap, setLap] = useState(0);
-  const [studySet, setStudySet] = useState<StudySet>(biologyDemo);
+  const [studySet, setStudySet] = useState<StudySet>(studySets[0]);
   const [questions, setQuestions] = useState<StudyQuestion[]>(() =>
-    buildLap(biologyDemo, 0),
+    shuffleAnswerChoices(buildLap(studySets[0], 0)),
   );
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -104,6 +183,7 @@ export function StudyDriftApp() {
   const [lastReward, setLastReward] = useState<RaceReward | null>(null);
   const nextButtonRef = useRef<HTMLButtonElement>(null);
   const raceCompletionRef = useRef(false);
+  const previousRaceQuestionIdsRef = useRef<Set<string>>(new Set());
 
   const currentQuestion = questions[questionIndex];
   const correctCount = records.filter((record) => record.correct).length;
@@ -137,9 +217,29 @@ export function StudyDriftApp() {
     [playerProgress],
   );
 
+  const unlockGuideReview = useCallback(
+    (guideId: string, cost: number) => {
+      const nextProgress = redeemGuideReview(playerProgress, guideId, cost);
+      if (!nextProgress) return false;
+      setPlayerProgress(nextProgress);
+      savePlayerProgress(nextProgress);
+      return true;
+    },
+    [playerProgress],
+  );
+
   const resetRace = useCallback(
-    (nextLap: number) => {
-      setQuestions(buildLap(studySet, nextLap));
+    (nextLap: number, requiredTopic?: string) => {
+      const nextQuestions = sampleRaceQuestions(
+        studySet,
+        buildLap(studySet, nextLap).length,
+        previousRaceQuestionIdsRef.current,
+        requiredTopic,
+      );
+      previousRaceQuestionIdsRef.current = new Set(
+        nextQuestions.map((question) => question.id),
+      );
+      setQuestions(nextQuestions);
       setQuestionIndex(0);
       setSelectedIndex(null);
       setRecords([]);
@@ -156,7 +256,8 @@ export function StudyDriftApp() {
 
   const importSet = useCallback((nextStudySet: StudySet) => {
     setStudySet(nextStudySet);
-    setQuestions(buildLap(nextStudySet, 0));
+    setQuestions(shuffleAnswerChoices(buildLap(nextStudySet, 0)));
+    previousRaceQuestionIdsRef.current = new Set();
     setQuestionIndex(0);
     setSelectedIndex(null);
     setRecords([]);
@@ -167,6 +268,22 @@ export function StudyDriftApp() {
     raceCompletionRef.current = false;
     setLap(0);
   }, []);
+
+  const practiceWeakestSector = useCallback(
+    (topic?: string) => {
+      const weakestTopic = topic ?? topicSummary(records)[0]?.topic;
+      resetRace(lap + 1, weakestTopic);
+    },
+    [lap, records, resetRace],
+  );
+
+  const selectBuiltInSet = useCallback(
+    (setId: string) => {
+      const nextStudySet = studySets.find((set) => set.id === setId);
+      if (nextStudySet) importSet(nextStudySet);
+    },
+    [importSet],
+  );
 
   const exitMultiplayer = useCallback(() => {
     if (multiplayer) {
@@ -261,6 +378,28 @@ export function StudyDriftApp() {
   }, [advance, screen, selectedIndex, submitAnswer]);
 
   useEffect(() => {
+    if (screen !== 'report') return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        event.key.toLowerCase() !== 'r' ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        target?.matches('input, textarea, select, [contenteditable="true"]')
+      )
+        return;
+
+      event.preventDefault();
+      practiceWeakestSector();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [practiceWeakestSector, screen]);
+
+  useEffect(() => {
     const timer = setTimeout(() => setPlayerProgress(loadPlayerProgress()), 0);
     return () => clearTimeout(timer);
   }, []);
@@ -312,8 +451,11 @@ export function StudyDriftApp() {
           onMode={setGarageMode}
           onStart={() => resetRace(0)}
           onImport={importSet}
+          onSelectSet={selectBuiltInSet}
+          onUnlockGuide={unlockGuideReview}
           onLocker={() => setScreen("locker")}
           selectedCar={selectedCar}
+          playerProgress={playerProgress}
           studySet={studySet}
           onMultiplayerConnected={(session, room) => {
             setMultiplayer({ session, room });
@@ -354,7 +496,7 @@ export function StudyDriftApp() {
           playerProgress={playerProgress}
           records={records}
           score={score}
-          onRetry={() => resetRace(lap + 1)}
+          onRetry={practiceWeakestSector}
           onGarage={() => setScreen("garage")}
           onLocker={() => setScreen("locker")}
         />
@@ -440,27 +582,55 @@ function Garage({
   onMode,
   onStart,
   onImport,
+  onSelectSet,
+  onUnlockGuide,
   onLocker,
   onMultiplayerConnected,
   selectedCar,
+  playerProgress,
   studySet,
 }: {
   mode: GarageMode;
   onMode: (mode: GarageMode) => void;
   onStart: () => void;
   onImport: (studySet: StudySet) => void;
+  onSelectSet: (setId: string) => void;
+  onUnlockGuide: (guideId: string, cost: number) => boolean;
   onLocker: () => void;
   onMultiplayerConnected: (
     session: MultiplayerSession,
     room: MultiplayerRoomState,
   ) => void;
   selectedCar: CarSpec;
+  playerProgress: PlayerProgress;
   studySet: StudySet;
 }) {
-  const conceptCount = new Set(
-    studySet.questions.map((question) => question.conceptId),
-  ).size;
-  const imported = studySet.id !== biologyDemo.id;
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const builtIn = studySets.some((set) => set.id === studySet.id);
+  const lapQuestionCount = buildLap(studySet, 0).length;
+  const conceptCount = Math.min(
+    10,
+    new Set(studySet.questions.map((question) => question.conceptId)).size,
+  );
+  const variantCount = Math.min(
+    3,
+    Math.max(
+      2,
+      ...Array.from(
+        new Map(
+          studySet.questions.map((question) => [question.conceptId, question]),
+        ).keys(),
+      ).map(
+        (conceptId) =>
+          studySet.questions.filter(
+            (question) => question.conceptId === conceptId,
+          ).length,
+      ),
+    ),
+  );
+  const reviewCost = guideReviewCost(studySet);
+  const reviewUnlocked = playerProgress.unlockedGuideIds.includes(studySet.id);
+  const reviewShortfall = Math.max(0, reviewCost - playerProgress.tokens);
 
   return (
     <div className="garage-layout">
@@ -522,6 +692,7 @@ function Garage({
         </div>
 
         {mode === "solo" ? (
+          <>
           <article className="study-set-card">
             <div className="study-set-card__top">
               <div className="set-icon">
@@ -536,20 +707,43 @@ function Garage({
               </div>
               <span className="ready-badge">
                 <Check size={14} aria-hidden="true" />
-                {imported ? "Imported" : "Demo ready"}
+                {builtIn ? "Ready" : "Imported"}
               </span>
             </div>
+            <div className="study-set-card__picker">
+              <label className="study-set-picker">
+                <span>Choose a study set</span>
+                <select
+                  aria-label="Choose a built-in study set"
+                  onChange={(event) => onSelectSet(event.target.value)}
+                  value={builtIn ? studySet.id : ''}
+                >
+                  <option value="" disabled>
+                    Imported study set
+                  </option>
+                  {studySetGroups.map((group) => (
+                    <optgroup key={group.subject} label={group.subject}>
+                      {group.sets.map((set) => (
+                        <option key={set.id} value={set.id}>
+                          {set.course} · {set.title}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </label>
+            </div>
             <div className="study-set-card__stats">
+              <div>
+                <strong>{lapQuestionCount}</strong>
+                <span>questions per lap</span>
+              </div>
               <div>
                 <strong>{conceptCount}</strong>
                 <span>concepts</span>
               </div>
               <div>
-                <strong>{conceptCount}</strong>
-                <span>questions per lap</span>
-              </div>
-              <div>
-                <strong>2×</strong>
+                <strong>{variantCount}×</strong>
                 <span>question variants</span>
               </div>
             </div>
@@ -559,6 +753,29 @@ function Garage({
                 in matched questions—not repeats.
               </p>
               <div className="study-set-card__buttons">
+                <Button
+                  className="review-guide-button"
+                  disabled={!reviewUnlocked && reviewShortfall > 0}
+                  onClick={() => {
+                    if (reviewUnlocked || onUnlockGuide(studySet.id, reviewCost)) {
+                      setReviewOpen(true);
+                    }
+                  }}
+                  size="lg"
+                  variant="outline"
+                >
+                  {reviewUnlocked ? (
+                    <BookOpen size={17} aria-hidden="true" />
+                  ) : (
+                    <Lock size={17} aria-hidden="true" />
+                  )}
+                  {reviewUnlocked
+                    ? 'Review guide'
+                    : reviewShortfall > 0
+                      ? `Need ${reviewShortfall} tokens for review guide`
+                      : `Unlock review guide · ${reviewCost}`}
+                  {!reviewUnlocked && <Coins size={15} aria-hidden="true" />}
+                </Button>
                 <StudyGuideImporter onImport={onImport} />
                 <Button className="start-button" size="lg" onClick={onStart}>
                   Start race <ArrowRight size={17} aria-hidden="true" />
@@ -566,6 +783,13 @@ function Garage({
               </div>
             </div>
           </article>
+          {reviewOpen && (
+            <GuideReview
+              studySet={studySet}
+              onClose={() => setReviewOpen(false)}
+            />
+          )}
+          </>
         ) : (
           <MultiplayerGarage
             onConnected={onMultiplayerConnected}
@@ -609,9 +833,9 @@ function Garage({
         </div>
         <div className="briefing-card">
           <span className="telemetry-label">
-            Race briefing · {conceptCount} turns
+            Race briefing · {lapQuestionCount} turns
           </span>
-          <h2>{conceptCount} concepts. One clean lap.</h2>
+          <h2>{lapQuestionCount} questions. One clean lap.</h2>
           <p>
             Harder questions trigger a stronger boost. Your final accuracy shows
             which sector to practice next.
@@ -627,6 +851,61 @@ function Garage({
         </div>
       </aside>
     </div>
+  );
+}
+
+function GuideReview({
+  studySet,
+  onClose,
+}: {
+  studySet: StudySet;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="guide-review__panel" showCloseButton={false}>
+        <header className="guide-review__header">
+          <div>
+            <span className="telemetry-label">Guide review · {studySet.course}</span>
+            <h2 id="guide-review-title">{studySet.title}</h2>
+            <p>{studySet.questions.length} questions with answers and explanations.</p>
+          </div>
+          <Button onClick={onClose} size="sm" variant="outline">
+            Close <X size={16} aria-hidden="true" />
+          </Button>
+        </header>
+        <div className="guide-review__summary" aria-label="Guide review summary">
+          <span>{studySet.questions.length} question bank</span>
+          <span>Correct answers highlighted</span>
+          <span>Explanations included</span>
+        </div>
+        <div className="guide-review__questions">
+          {studySet.questions.map((question, index) => (
+            <article className="guide-review__question" key={question.id}>
+              <div className="guide-review__meta">
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <span>{question.topic}</span>
+              </div>
+              <h3>{question.prompt}</h3>
+              <ol>
+                {question.choices.map((choice, choiceIndex) => (
+                  <li
+                    className={
+                      choiceIndex === question.answerIndex ? 'is-correct' : ''
+                    }
+                    key={`${question.id}-${choice}`}
+                  >
+                    {choice}
+                    {choiceIndex === question.answerIndex && <Check size={15} aria-label="Correct answer" />}
+                  </li>
+                ))}
+              </ol>
+              <p className="guide-review__explanation">{question.explanation}</p>
+            </article>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -797,7 +1076,7 @@ function PitReport({
   playerProgress: PlayerProgress;
   records: AnswerRecord[];
   score: number;
-  onRetry: () => void;
+  onRetry: (topic?: string) => void;
   onGarage: () => void;
   onLocker: () => void;
 }) {
@@ -847,8 +1126,14 @@ function PitReport({
           </div>
         ) : null}
         <div className="report-actions">
-          <Button className="start-button" size="lg" onClick={onRetry}>
-            Practice weakest sector <RotateCcw size={17} aria-hidden="true" />
+          <Button
+            aria-keyshortcuts="r"
+            className="start-button"
+            size="lg"
+            onClick={() => onRetry(weakest?.topic)}
+          >
+            Practice weakest sector <kbd>R</kbd>
+            <RotateCcw size={17} aria-hidden="true" />
           </Button>
           <Button variant="outline" size="lg" onClick={onGarage}>
             Back to garage

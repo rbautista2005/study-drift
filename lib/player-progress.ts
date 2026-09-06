@@ -5,13 +5,14 @@ import {
 } from '@/lib/car-locker';
 
 export type PlayerProgress = {
-  version: 2;
+  version: 3;
   tokens: number;
   racesCompleted: number;
   longestStreak: number;
   bestScore: number;
   unlockedCarIds: CarId[];
   selectedCarId: CarId;
+  unlockedGuideIds: string[];
 };
 
 export type RaceReward = {
@@ -21,13 +22,14 @@ export type RaceReward = {
 const storageKey = 'study-drift-player-progress-v1';
 
 export const emptyPlayerProgress: PlayerProgress = {
-  version: 2,
+  version: 3,
   tokens: 0,
   racesCompleted: 0,
   longestStreak: 0,
   bestScore: 0,
   unlockedCarIds: [starterCarId],
   selectedCarId: starterCarId,
+  unlockedGuideIds: [],
 };
 
 function safeCount(value: unknown) {
@@ -52,15 +54,26 @@ export function loadPlayerProgress(): PlayerProgress {
       unlockedCarIds.includes(parsed.selectedCarId)
         ? parsed.selectedCarId
         : starterCarId;
+    const unlockedGuideIds = Array.isArray(parsed.unlockedGuideIds)
+      ? Array.from(
+          new Set(
+            parsed.unlockedGuideIds.filter(
+              (value): value is string =>
+                typeof value === 'string' && value.length > 0 && value.length <= 120,
+            ),
+          ),
+        )
+      : [];
 
     return {
-      version: 2,
+      version: 3,
       tokens: safeCount(parsed.tokens),
       racesCompleted: safeCount(parsed.racesCompleted),
       longestStreak: safeCount(parsed.longestStreak),
       bestScore: safeCount(parsed.bestScore),
       unlockedCarIds,
       selectedCarId,
+      unlockedGuideIds,
     };
   } catch {
     return { ...emptyPlayerProgress };
@@ -93,6 +106,21 @@ export function redeemCar(
   };
 }
 
+export function redeemGuideReview(
+  progress: PlayerProgress,
+  guideId: string,
+  cost: number,
+): PlayerProgress | null {
+  if (progress.unlockedGuideIds.includes(guideId)) return progress;
+  if (cost < 0 || progress.tokens < cost) return null;
+
+  return {
+    ...progress,
+    tokens: progress.tokens - cost,
+    unlockedGuideIds: [...progress.unlockedGuideIds, guideId],
+  };
+}
+
 export function selectCar(
   progress: PlayerProgress,
   carId: CarId,
@@ -113,13 +141,14 @@ export function finishSoloRace(
   return {
     reward: { tokensEarned },
     progress: {
-      version: 2,
+      version: 3,
       tokens: progress.tokens + tokensEarned,
       racesCompleted: progress.racesCompleted + 1,
       longestStreak: Math.max(progress.longestStreak, result.longestStreak),
       bestScore: Math.max(progress.bestScore, result.score),
       unlockedCarIds: progress.unlockedCarIds,
       selectedCarId: progress.selectedCarId,
+      unlockedGuideIds: progress.unlockedGuideIds,
     },
   };
 }
