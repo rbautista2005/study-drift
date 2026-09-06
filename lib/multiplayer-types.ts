@@ -13,7 +13,6 @@ export type MultiplayerPlayer = {
   displayName: string;
   isHost: boolean;
   ready: boolean;
-  score: number;
   correctCount: number;
   answeredCount: number;
   streak: number;
@@ -49,7 +48,6 @@ export type MultiplayerSession = {
 export type AnswerOutcome = {
   duplicate: boolean;
   correct: boolean;
-  pointsAwarded: number;
   correctIndex: number;
   explanation: string;
 };

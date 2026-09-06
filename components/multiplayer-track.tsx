@@ -99,7 +99,7 @@ export function MultiplayerTrack({
                   <RaceCarModel car={displayCar} number={index + 1} />
                 </div>
               </div>
-              <strong className="multiplayer-lane__score">
+              <strong className="multiplayer-lane__progress">
                 {finishPosition ? (
                   <>
                     <Check size={12} /> {ordinal(finishPosition)}

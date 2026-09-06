@@ -33,7 +33,6 @@ type StudyDriftToolState = {
   questionCount: number;
   selectedIndex: number | null;
   correctCount: number;
-  score: number;
   onStartSolo: () => void;
   onAnswer: (index: number) => void;
   onAdvance: () => void;
@@ -172,7 +171,7 @@ export function useStudyDriftTools(state: StudyDriftToolState) {
       name: 'read_solo_race_status',
       title: 'Read solo race status',
       description:
-        'Read the visible solo-race screen, question progress, correct count, and score without changing anything.',
+        'Read the visible solo-race screen, question progress, and correct count without changing anything.',
       inputSchema: {
         type: 'object',
         properties: {},
@@ -188,7 +187,6 @@ export function useStudyDriftTools(state: StudyDriftToolState) {
             snapshot.screen === 'race' ? snapshot.questionIndex + 1 : null,
           questionCount: snapshot.questionCount,
           correctCount: snapshot.correctCount,
-          score: snapshot.score,
         };
       },
     });
