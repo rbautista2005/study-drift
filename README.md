@@ -2,7 +2,7 @@
 
 **Study Drift** turns a study guide into a racing game. Answer questions correctly to build speed, maintain a streak, and finish a lap with a clear picture of what to review next.
 
-It ships with a ready-to-play Cellular Respiration deck, supports creating study sets from pasted notes or uploaded files, and includes a multiplayer race flow backed by Cloudflare D1.
+It ships with a ready-to-play Study decks, supports creating study sets from pasted notes or uploaded files, and includes a multiplayer race flow backed by Cloudflare D1.
 
 ## What you can do
 
