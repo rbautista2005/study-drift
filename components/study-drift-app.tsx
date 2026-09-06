@@ -512,11 +512,6 @@ function Garage({
           aria-hidden="true"
         >
           <div className="track-preview__scene">
-            <div className="track-preview__signal">
-              <span />
-              <span />
-              <span />
-            </div>
             <div className="track-preview__speed-lines">
               <span />
               <span />
@@ -543,7 +538,6 @@ function Garage({
           </div>
           <div className="track-preview__legend">
             <span>Start grid</span>
-            <strong>{conceptCount} correct answers</strong>
             <span>Finish</span>
           </div>
         </div>

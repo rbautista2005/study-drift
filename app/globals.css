@@ -1047,28 +1047,6 @@ a:focus-visible {
   width: 25px;
 }
 
-.track-preview__signal {
-  background: var(--ink);
-  display: flex;
-  gap: 5px;
-  padding: 6px;
-  position: absolute;
-  right: 34px;
-  top: 20px;
-}
-
-.track-preview__signal span {
-  background: #4c606c;
-  border-radius: 50%;
-  height: 9px;
-  width: 9px;
-}
-
-.track-preview__signal span:last-child {
-  background: var(--teal);
-  box-shadow: 0 0 0 3px rgba(46, 196, 182, 0.2);
-}
-
 .track-preview__finish-post {
   border-left: 3px solid var(--orange);
   height: 70px;
@@ -1102,11 +1080,6 @@ a:focus-visible {
   position: absolute;
   text-transform: uppercase;
   width: calc(100% - 40px);
-}
-
-.track-preview__legend strong {
-  color: var(--orange);
-  font-weight: 750;
 }
 
 .briefing-card {
