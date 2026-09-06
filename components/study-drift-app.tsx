@@ -62,7 +62,6 @@ import {
 } from "@/lib/study-data";
 import {
   difficultyLabel,
-  pointsForAnswer,
   speedForAnswer,
   topicSummary,
   type AnswerRecord,
@@ -146,8 +145,10 @@ function sampleRaceQuestions(
   return shuffleAnswerChoices(selected);
 }
 
-function learningResources(topic: string) {
-  const query = encodeURIComponent(topic);
+function learningResources(topic: string, studySet: StudySet) {
+  const query = encodeURIComponent(
+    `${studySet.course} ${studySet.title} ${topic}`,
+  );
   return [
     {
       label: "Lesson search",
@@ -178,7 +179,6 @@ export function StudyDriftApp() {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [records, setRecords] = useState<AnswerRecord[]>([]);
-  const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [speed, setSpeed] = useState(0);
   const [playerProgress, setPlayerProgress] =
@@ -246,7 +246,6 @@ export function StudyDriftApp() {
       setQuestionIndex(0);
       setSelectedIndex(null);
       setRecords([]);
-      setScore(0);
       setStreak(0);
       setSpeed(0);
       setLastReward(null);
@@ -264,7 +263,6 @@ export function StudyDriftApp() {
     setQuestionIndex(0);
     setSelectedIndex(null);
     setRecords([]);
-    setScore(0);
     setStreak(0);
     setSpeed(0);
     setLastReward(null);
@@ -304,13 +302,9 @@ export function StudyDriftApp() {
 
       const correct = answerIndex === currentQuestion.answerIndex;
       const nextStreak = correct ? streak + 1 : 0;
-      const earnedPoints = correct
-        ? pointsForAnswer(currentQuestion.difficulty, nextStreak)
-        : 0;
 
       setSelectedIndex(answerIndex);
       setStreak(nextStreak);
-      setScore((current) => current + earnedPoints);
       setSpeed(
         correct ? speedForAnswer(currentQuestion.difficulty, nextStreak) : 34,
       );
@@ -320,7 +314,6 @@ export function StudyDriftApp() {
           question: currentQuestion,
           selectedIndex: answerIndex,
           correct,
-          earnedPoints,
           streakAfter: nextStreak,
         },
       ]);
@@ -340,7 +333,6 @@ export function StudyDriftApp() {
           (longest, record) => Math.max(longest, record.streakAfter),
           0,
         ),
-        score,
       });
       setPlayerProgress(raceResult.progress);
       setLastReward(raceResult.reward);
@@ -357,7 +349,6 @@ export function StudyDriftApp() {
     questionIndex,
     questions.length,
     records,
-    score,
     selectedIndex,
   ]);
 
@@ -432,7 +423,6 @@ export function StudyDriftApp() {
     questionCount: questions.length,
     selectedIndex,
     correctCount,
-    score,
     onStartSolo: () => resetRace(0),
     onAnswer: submitAnswer,
     onAdvance: advance,
@@ -487,7 +477,6 @@ export function StudyDriftApp() {
           progress={progress}
           questionCount={questions.length}
           questionIndex={questionIndex}
-          score={score}
           selectedIndex={selectedIndex}
           speed={speed}
           streak={streak}
@@ -501,7 +490,7 @@ export function StudyDriftApp() {
           lastReward={lastReward}
           playerProgress={playerProgress}
           records={records}
-          score={score}
+          studySet={studySet}
           onRetry={practiceWeakestSector}
           onGarage={() => setScreen("garage")}
           onLocker={() => setScreen("locker")}
@@ -934,7 +923,6 @@ type RaceScreenProps = {
   progress: number;
   questionCount: number;
   questionIndex: number;
-  score: number;
   selectedIndex: number | null;
   speed: number;
   streak: number;
@@ -953,7 +941,6 @@ function RaceScreen(props: RaceScreenProps) {
     progress,
     questionCount,
     questionIndex,
-    score,
     selectedIndex,
     speed,
     streak,
@@ -975,10 +962,6 @@ function RaceScreen(props: RaceScreenProps) {
           <strong>
             {answeredCount} / {questionCount}
           </strong>
-        </div>
-        <div>
-          <span className="telemetry-label">Score</span>
-          <strong>{score.toLocaleString()}</strong>
         </div>
         <div>
           <span className="telemetry-label">Streak</span>
@@ -1084,7 +1067,7 @@ function PitReport({
   lastReward,
   playerProgress,
   records,
-  score,
+  studySet,
   onRetry,
   onGarage,
   onLocker,
@@ -1093,7 +1076,7 @@ function PitReport({
   lastReward: RaceReward | null;
   playerProgress: PlayerProgress;
   records: AnswerRecord[];
-  score: number;
+  studySet: StudySet;
   onRetry: (topic?: string) => void;
   onGarage: () => void;
   onLocker: () => void;
@@ -1118,7 +1101,7 @@ function PitReport({
           You answered {correct} of {records.length} correctly. Use the sector
           breakdown to decide what to practice next.
         </p>
-        <div className="report-scoreboard">
+        <div className="report-summary">
           <div>
             <span>Accuracy</span>
             <strong>{accuracy}%</strong>
@@ -1128,10 +1111,6 @@ function PitReport({
             <strong>
               {correct}/{records.length}
             </strong>
-          </div>
-          <div>
-            <span>Race score</span>
-            <strong>{score.toLocaleString()}</strong>
           </div>
         </div>
         {lastReward ? (
@@ -1224,20 +1203,22 @@ function PitReport({
                       </span>
                     </div>
                     <div className="learning-resource__links">
-                      {learningResources(topic.topic).map((resource) => (
-                        <a
-                          href={resource.url}
-                          key={resource.provider}
-                          rel="noopener noreferrer"
-                          target="_blank"
-                        >
-                          <span>
-                            <small>{resource.provider}</small>
-                            {resource.label}
-                          </span>
-                          <ExternalLink size={14} aria-hidden="true" />
-                        </a>
-                      ))}
+                      {learningResources(topic.topic, studySet).map(
+                        (resource) => (
+                          <a
+                            href={resource.url}
+                            key={resource.provider}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                          >
+                            <span>
+                              <small>{resource.provider}</small>
+                              {resource.label}
+                            </span>
+                            <ExternalLink size={14} aria-hidden="true" />
+                          </a>
+                        ),
+                      )}
                     </div>
                   </article>
                 );

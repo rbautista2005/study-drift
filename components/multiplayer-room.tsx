@@ -529,7 +529,7 @@ function LiveMultiplayerRace({
                 <span className="feedback__title">
                   {outcome.correct ? (
                     <>
-                      <Check size={18} /> +{outcome.pointsAwarded} · Clean line
+                      <Check size={18} /> Correct · Clean line
                     </>
                   ) : (
                     <>
@@ -567,7 +567,7 @@ function MultiplayerResults({
             Number(a.id === room.winnerPlayerId) ||
           (a.finishedAtMs ?? Number.POSITIVE_INFINITY) -
             (b.finishedAtMs ?? Number.POSITIVE_INFINITY) ||
-          b.score - a.score,
+          a.id.localeCompare(b.id),
       ),
     [room.players, room.winnerPlayerId],
   );
@@ -622,8 +622,8 @@ function MultiplayerResults({
                 {player.id === room.me.id ? ' · you' : ''}
               </strong>
               <span>
-                {player.correctCount} correct · {player.score.toLocaleString()}{' '}
-                pts
+                {player.correctCount} correct · {player.answeredCount}{' '}
+                answered
               </span>
             </div>
             {index === 0 && <Crown size={19} aria-label="Winner" />}

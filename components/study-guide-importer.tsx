@@ -58,6 +58,7 @@ export function StudyGuideImporter({
   const [mode, setMode] = useState<ImportMode>('file');
   const [title, setTitle] = useState('Cell Biology Notes');
   const [course, setCourse] = useState('BIO 101');
+  const [questionFocus, setQuestionFocus] = useState('');
   const [sourceText, setSourceText] = useState(sampleNotes);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -120,6 +121,7 @@ export function StudyGuideImporter({
     formData.set('file', selectedFile);
     formData.set('title', title);
     formData.set('course', course);
+    formData.set('focus', questionFocus);
 
     try {
       const response = await fetch('/api/study-guides/generate', {
@@ -192,8 +194,8 @@ export function StudyGuideImporter({
           <span className="telemetry-label">AI track builder</span>
           <DialogTitle>Turn any guide into a race.</DialogTitle>
           <DialogDescription>
-            Upload class material and the pit crew will extract its strongest
-            concepts, then build two question variants for every turn.
+            Upload class material, choose what you want to practice, and the pit
+            crew will build two question variants for every turn.
           </DialogDescription>
         </DialogHeader>
 
@@ -268,6 +270,27 @@ export function StudyGuideImporter({
 
           {mode === 'file' ? (
             <>
+              <label className="question-focus-field">
+                <span>
+                  Question focus <small>Optional</small>
+                </span>
+                <textarea
+                  disabled={isGenerating}
+                  maxLength={400}
+                  onChange={(event) => {
+                    setQuestionFocus(event.target.value);
+                    setGeneratedSet(null);
+                  }}
+                  placeholder="Example: Ask only about mitosis, meiosis, and chromosome behavior."
+                  rows={3}
+                  value={questionFocus}
+                />
+                <small>
+                  Name one or more concepts. The AI will only write questions
+                  about those concepts when they appear in your guide.
+                </small>
+              </label>
+
               <input
                 accept={fileAccept}
                 className="file-input"

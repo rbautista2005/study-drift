@@ -4,7 +4,6 @@ export type AnswerRecord = {
   question: StudyQuestion;
   selectedIndex: number;
   correct: boolean;
-  earnedPoints: number;
   streakAfter: number;
 };
 
@@ -13,18 +12,6 @@ export const difficultyLabel: Record<Difficulty, string> = {
   2: 'Technical',
   3: 'Apex',
 };
-
-export const difficultyMultiplier: Record<Difficulty, number> = {
-  1: 1,
-  2: 1.35,
-  3: 1.7,
-};
-
-export function pointsForAnswer(difficulty: Difficulty, nextStreak: number) {
-  const base = 100 * difficultyMultiplier[difficulty];
-  const streakBonus = Math.min(Math.max(nextStreak - 1, 0), 4) * 15;
-  return Math.round(base + streakBonus);
-}
 
 export function speedForAnswer(difficulty: Difficulty, nextStreak: number) {
   return Math.round(62 + difficulty * 18 + Math.min(nextStreak, 5) * 4);

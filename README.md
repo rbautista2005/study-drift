@@ -6,7 +6,7 @@ It ships with a ready-to-play Cellular Respiration deck, supports creating study
 
 ## What you can do
 
-- **Race solo.** Take one question per concept, earn points according to difficulty and streak, and see a topic-by-topic accuracy report at the finish line.
+- **Race solo.** Take one question per concept, build speed through difficulty and streaks, and see a topic-by-topic accuracy report at the finish line.
 - **Learn from a demo immediately.** The bundled BIO 101 Cellular Respiration deck works without accounts, a database, or API keys.
 - **Build a set from notes.** Paste structured notes into the importer to create a local study set in the browser.
 - **Generate a set from a file.** With an OpenAI API key configured, upload a PDF, Word document, image, Markdown file, or plain-text guide (up to 8 MB). The server produces 4–12 concepts with two question variants per concept.
@@ -17,13 +17,13 @@ It ships with a ready-to-play Cellular Respiration deck, supports creating study
 
 Each lap contains one question for every concept in the selected study set. The app rotates between question variants on later laps so a retry tests understanding rather than recall alone.
 
-| Difficulty | In-game label | Base points |
-| --- | --- | ---: |
-| 1 | Warm-up | 100 |
-| 2 | Technical | 135 |
-| 3 | Apex | 170 |
+| Difficulty | In-game label | Race effect |
+| --- | --- | --- |
+| 1 | Warm-up | Standard speed boost |
+| 2 | Technical | Stronger speed boost |
+| 3 | Apex | Strongest speed boost |
 
-Correct answers also earn a streak bonus (up to four bonuses) and increase the displayed car speed. An incorrect answer breaks the streak. In multiplayer, the first player to answer every question correctly wins; scores and progress are stored in D1.
+Correct answers build a streak and increase the displayed car speed. An incorrect answer breaks the streak. In multiplayer, the first player to answer every question correctly wins; race progress is stored in D1.
 
 ## Technology
 
@@ -135,9 +135,9 @@ vite.config.ts                        Vite, Cloudflare, and local environment se
 
 ## Data and privacy notes
 
-- Solo progress (tokens, completed races, longest streak, and best score) is stored in browser `localStorage`; clearing site data removes it. Imported sets live in the running app session, so re-import them after a page refresh.
+- Solo progress (tokens, completed races, and longest streak) is stored in browser `localStorage`; clearing site data removes it. Imported sets live in the running app session, so re-import them after a page refresh.
 - Multiplayer session tokens are kept in `sessionStorage`; closing a browser session may require joining again.
-- Multiplayer records include room state, player display names, answer outcomes, and scores in the configured D1 database.
+- Multiplayer records include room state, player display names, and answer outcomes in the configured D1 database.
 - AI imports send the selected source file to the OpenAI Responses API through the application server with `store: false`. Do not upload material you are not permitted to share.
 
 ## Troubleshooting

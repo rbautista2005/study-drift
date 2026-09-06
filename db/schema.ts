@@ -43,7 +43,6 @@ export const racePlayers = sqliteTable(
     displayName: text('display_name').notNull(),
     isHost: integer('is_host', { mode: 'boolean' }).notNull().default(false),
     ready: integer('ready', { mode: 'boolean' }).notNull().default(false),
-    score: integer('score').notNull().default(0),
     correctCount: integer('correct_count').notNull().default(0),
     answeredCount: integer('answered_count').notNull().default(0),
     streak: integer('streak').notNull().default(0),
@@ -73,7 +72,6 @@ export const raceAnswers = sqliteTable(
     questionId: text('question_id').notNull(),
     selectedIndex: integer('selected_index').notNull(),
     correct: integer('correct', { mode: 'boolean' }).notNull(),
-    pointsAwarded: integer('points_awarded').notNull(),
     receivedAtMs: integer('received_at_ms').notNull(),
   },
   (table) => [

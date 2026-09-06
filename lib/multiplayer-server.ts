@@ -6,7 +6,6 @@ import {
   resolveRoomDeck,
   serializeRoomDeck,
 } from '@/lib/multiplayer-deck.server';
-import { pointsForAnswer } from '@/lib/race-engine';
 import { shuffleAnswerChoices } from '@/lib/study-data';
 import type {
   AnswerOutcome,
@@ -43,7 +42,6 @@ type PlayerRow = {
   display_name: string;
   is_host: number;
   ready: number;
-  score: number;
   correct_count: number;
   answered_count: number;
   streak: number;
@@ -52,9 +50,7 @@ type PlayerRow = {
 };
 
 type AnswerRow = {
-  selected_index: number;
   correct: number;
-  points_awarded: number;
 };
 
 type SessionInput = {
@@ -140,7 +136,6 @@ function publicPlayer(row: PlayerRow): MultiplayerPlayer {
     displayName: row.display_name,
     isHost: Boolean(row.is_host),
     ready: Boolean(row.ready),
-    score: row.score,
     correctCount: row.correct_count,
     answeredCount: row.answered_count,
     streak: row.streak,
@@ -492,7 +487,7 @@ export async function answerQuestion(
 
   const existing = await getDatabase()
     .prepare(
-      `SELECT selected_index, correct, points_awarded FROM race_answers
+      `SELECT correct FROM race_answers
        WHERE room_id = ? AND player_id = ? AND question_id = ? LIMIT 1`,
     )
     .bind(room.id, player.id, attemptQuestionId)
@@ -501,7 +496,6 @@ export async function answerQuestion(
     const outcome: AnswerOutcome = {
       duplicate: true,
       correct: Boolean(existing.correct),
-      pointsAwarded: existing.points_awarded,
       correctIndex: question.answerIndex,
       explanation: question.explanation,
     };
@@ -510,12 +504,8 @@ export async function answerQuestion(
 
   const correct = Number(answerIndex) === question.answerIndex;
   const nextStreak = correct ? player.streak + 1 : 0;
-  const pointsAwarded = correct
-    ? pointsForAnswer(question.difficulty, nextStreak)
-    : 0;
   const nextAnsweredCount = player.answered_count + 1;
   const nextCorrectCount = player.correct_count + (correct ? 1 : 0);
-  const nextScore = player.score + pointsAwarded;
   const passed = nextCorrectCount >= room.mastery_target;
   const finishedAtMs = passed ? Date.now() : null;
 
@@ -525,9 +515,9 @@ export async function answerQuestion(
       .prepare(
         `INSERT INTO race_answers (
           request_id, room_id, player_id, question_id, selected_index,
-          correct, points_awarded, received_at_ms
+          correct, received_at_ms
         )
-        SELECT ?, ?, ?, ?, ?, ?, ?, ?
+        SELECT ?, ?, ?, ?, ?, ?, ?
         WHERE EXISTS (
           SELECT 1 FROM race_rooms
           WHERE id = ? AND status = 'racing'
@@ -544,7 +534,6 @@ export async function answerQuestion(
         attemptQuestionId,
         answerIndex,
         correct ? 1 : 0,
-        pointsAwarded,
         Date.now(),
         room.id,
         player.id,
@@ -554,12 +543,11 @@ export async function answerQuestion(
     db
       .prepare(
         `UPDATE race_players
-         SET score = ?, correct_count = ?, answered_count = ?, streak = ?, finished_at_ms = ?
+         SET correct_count = ?, answered_count = ?, streak = ?, finished_at_ms = ?
          WHERE id = ? AND answered_count = ?
            AND EXISTS (SELECT 1 FROM race_answers WHERE request_id = ?)`,
       )
       .bind(
-        nextScore,
         nextCorrectCount,
         nextAnsweredCount,
         nextStreak,
@@ -618,7 +606,6 @@ export async function answerQuestion(
   const outcome: AnswerOutcome = {
     duplicate: false,
     correct,
-    pointsAwarded,
     correctIndex: question.answerIndex,
     explanation: question.explanation,
   };
@@ -691,8 +678,8 @@ export async function leaveRoom(
            SET status = 'finished',
                winner_player_id = (
                  SELECT id FROM race_players WHERE room_id = ?
-                 ORDER BY correct_count DESC, score DESC,
-                          finished_at_ms ASC, joined_at_ms ASC LIMIT 1
+                 ORDER BY correct_count DESC, finished_at_ms ASC,
+                          joined_at_ms ASC LIMIT 1
                ),
                version = version + 1
            WHERE id = ? AND status = 'racing'

@@ -15,6 +15,13 @@
       "when": 1788641854589,
       "tag": "0001_chief_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788721856579,
+      "tag": "0002_windy_star_brand",
+      "breakpoints": true
     }
   ]
 }
